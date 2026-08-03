@@ -177,3 +177,9 @@ def validate_metadata(ds: xr.Dataset) -> None:
                 raise ValueError(
                     f"If metadata 'expected_fit_result' is a dictionary of dictionaries, all values should be floats, but found {invalid_types}"
                 )
+
+            # the dict keys should match the data variables in the dataset
+            if not sorted(expected_fit_result.keys()) == sorted(list(ds.keys())):
+                raise ValueError(
+                    f"Expected the 'expected_fit_result' metadata dict to have an entry for each data variable. Found data variables {list(ds.keys())} but metadata has {list(expected_fit_result.keys())}."
+                )
