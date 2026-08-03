@@ -5,8 +5,10 @@ This module contains example data that can (and should) be used in documentation
 and unit tests. The data should come from real experiments, so that the fitting
 algorithms can be evaluated and tested against a ??realistic scenario??.
 
-The data should be in NetCDF 4 format. The axes should be labeled and have units.
-Each dataset should have the following NetCDF metadata:
+The data should be in NetCDF 4 format. The axes should be labeled and have
+units. If a dataset has multiple traces (for example, form the simultaneous
+measurement of multiple qubits), each trace should be a separate variable in the
+dataset. Each dataset should have the following NetCDF metadata:
 
 - title: string
     - a short, one-sentence human-readable description of the data. For example:
@@ -32,8 +34,10 @@ Each dataset should have the following NetCDF metadata:
 - expected_fit_result: JSON dictionary (optional)
     - A string encoding a JSON dictionary of machine-readable expected fit
     values that can be used in unit tests. The values should be in SI base
-    units. For example,
-    `{"resonance_frequency": 6.123e9, "linewidth": 5e6}`
+    units. For example, `{"resonance_frequency": 6.123e9, "linewidth": 5e6}`.
+    For datasets with multiple qubits, it should be a nested dictionary with
+    top-level keys for the qubits:
+    `{"Q00": {"resonance_frequency": ..., "linewidth": ...}, "Q01": {...}, ...}`
 - license: string
     - A license identifier such as "CC BY-SA 4.0"
 
