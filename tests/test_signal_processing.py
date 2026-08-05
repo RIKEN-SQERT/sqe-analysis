@@ -1,0 +1,53 @@
+import numpy as np
+import xarray as xr
+from xarray.testing import assert_equal  # pyright: ignore[reportUnknownVariableType]
+
+from sqe_fitting2.signal_processing import project_complex
+
+
+def test_project_complex_dataarray_zero():
+    da = xr.DataArray(np.array([0, 0]), dims=["x"])
+    projected = project_complex(da)
+    assert_equal(projected, xr.DataArray([0, 0], dims=["x"]))
+
+
+def test_project_complex_dataarray_real():
+    da = xr.DataArray(np.array([0, 2]), dims=["x"])
+    projected = project_complex(da)
+    assert_equal(projected, xr.DataArray([-1, 1], dims=["x"]))
+
+
+def test_project_complex_dataarray_imag():
+    da = xr.DataArray(np.array([-1j, 1j]), dims=["x"])
+    projected = project_complex(da)
+    assert_equal(projected, xr.DataArray([-1, 1], dims=["x"]))
+
+
+def test_project_complex_dataarray_mixed():
+    da = xr.DataArray(np.array([-3 - 4j, 3 + 4j]), dims=["x"])
+    projected = project_complex(da)
+    assert_equal(projected, xr.DataArray([-5, 5], dims=["x"]))
+
+
+def test_project_complex_dataset_zero():
+    ds = xr.Dataset({"v": (["x"], np.array([0, 0]))})
+    projected = project_complex(ds)
+    assert_equal(projected, xr.Dataset({"v": (["x"], [0, 0])}))
+
+
+def test_project_complex_dataset_real():
+    ds = xr.Dataset({"v": (["x"], np.array([0, 2]))})
+    projected = project_complex(ds)
+    assert_equal(projected, xr.Dataset({"v": (["x"], [-1, 1])}))
+
+
+def test_project_complex_dataset_imag():
+    ds = xr.Dataset({"v": (["x"], np.array([-1j, 1j]))})
+    projected = project_complex(ds)
+    assert_equal(projected, xr.Dataset({"v": (["x"], [-1, 1])}))
+
+
+def test_project_complex_dataset_mixed():
+    ds = xr.Dataset({"v": (["x"], np.array([-3 - 4j, 3 + 4j]))})
+    projected = project_complex(ds)
+    assert_equal(projected, xr.Dataset({"v": (["x"], [-5, 5])}))
