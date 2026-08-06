@@ -12,36 +12,23 @@ class BaseAnalysis:
     """
     Base class that defines the API for all kinds of data analysis.
 
-    The main function a subclass should implement is `analyze`, which takes in
-    an Xarray DataArray (that has been possibly preprocessed by `preprocess`)
-    and returns an Xarray Dataset with the following schema: **TOD**
+    There is only one function that a subclass should implement, `run`. It takes
+    in an Xarray DataArray and returns an Xarray Dataset with the following
+    schema: **TOD**
 
-    The main function that a user should use is `run`, which will call
-    `preprocess` (if it is implemented) and then `analyze`.
+    Having a class with a single method may seem a bit redundant, but the goal
+    is to keep the interface consistent across subclasses (such as
+    `CurvefitAnalysis`) which may need more methods.
 
-    Note that all methods are class methods, so they cannot depend on any
-    internal state.
+    Note `run` is a class method, so it cannot depend on any internal state.
     """
 
     @classmethod
-    def preprocess(cls, data: xr.DataArray) -> xr.DataArray | None:  # pyright: ignore [reportUnusedParameter]
+    def run(cls, data: xr.DataArray, *argd: Any, **kwargs: Any) -> xr.Dataset:
         """
-        Any preprocessing that should be done to the raw data before performing
-        the analysis.
+        Perform data analysis.
 
-        If no preprocessing is done, this function should return None, which is
-        the default behavior. This way, `run` can determine whether to save the
-        preprocessed data in the result dataset.
-        """
-        return None
-
-    @classmethod
-    def analyze(
-        cls, preprocessed_data: xr.DataArray, *args: Any, **kwargs: Any
-    ) -> xr.Dataset:
-        """
-        The main analysis function. Should return a dataset with a specified
-        schema, see the class documentation.
+        Should return a dataset with a specified schema, see the class documentation.
 
         The keyword arguments should contain additional parameters needed for
         the analysis, such as the dimension(s) over which to do curve fitting.
@@ -49,26 +36,6 @@ class BaseAnalysis:
         raise NotImplementedError(
             f"Analysis not implemented for {cls.__module__}.{cls.__qualname__}"
         )
-
-    @classmethod
-    def run(cls, data: xr.DataArray, **kwargs: Any) -> xr.Dataset:
-        """
-        Preprocess and then analyze data.
-
-        The preprocessed data is saved in the result dataset so that it can be
-        used for e.g. plotting. If the `preprocess` function returns None, it is
-        not added to the dataset.
-        """
-        preprocessed = cls.preprocess(data)
-
-        data_to_analyze = data if preprocessed is None else preprocessed
-
-        analysis_result = cls.analyze(data_to_analyze, **kwargs)
-
-        if preprocessed is not None:
-            analysis_result = analysis_result.assign(preprocessed_data=preprocessed)
-
-        return analysis_result
 
 
 # The type of initial guess of xr.DataArray.curvefit
@@ -79,22 +46,24 @@ class CurvefitAnalysis(BaseAnalysis):
     """
     Special case of analysis where the analysis is performed by fitting a curve.
 
-    A subclass should implement the model function in `func`. The `analyze`
-    function has a default implementation that performs fitting to `func` using
+    A subclass should implement the model function in `func`. The `run` function
+    has a default implementation that performs fitting to `func` using
     `xr.DataArray.curvefit`. Additionally, a subclass may implement a `guess`
-    function that produces an initial guess, which will be called by `analyze`.
+    function that produces an initial guess, which will be called by `run`.
 
     This class should only be used for the cases where the analysis truly
     consists of a single curve fit. If you need to perform multiple curve fits
     (for example, fitting an oscillation frequency as a function of some
     parameter, and then fitting a curve to the extracted oscillation
     frequencies), you should use `BaseAnalysis` instead, and use
-    `CurvefitAnalysis` subclasses in the `analyze` implementation. See the
+    `CurvefitAnalysis` subclasses in the `run` implementation. See the
     ???documentation??? for an example.
 
     Note that all methods are class methods, so they cannot depend on any
     internal state.
     """
+
+    # TODO: document preprocessing...
 
     # TODO: doc link
 
@@ -123,9 +92,19 @@ class CurvefitAnalysis(BaseAnalysis):
         return None
 
     @classmethod
-    def analyze(
+    def preprocess(
         cls,
-        preprocessed_data: xr.DataArray,
+        data: xr.DataArray,
+        coords: str | xr.DataArray | Iterable[str | xr.DataArray],
+    ) -> xr.DataArray | None:
+        # TODO: docstrirng
+        # ... should return a data array that is suitable for fitting to the model ...
+        return None
+
+    @classmethod
+    def run(
+        cls,
+        data: xr.DataArray,
         coords: str | xr.DataArray | Iterable[str | xr.DataArray],
         guess: CurvefitGuessType | None = None,
         curvefit_kwargs: dict[str, Any] | None = None,
@@ -147,17 +126,30 @@ class CurvefitAnalysis(BaseAnalysis):
         if curvefit_kwargs is None:
             curvefit_kwargs = {}
 
-        guess_from_func = cls.guess(preprocessed_data)
+        preprocessed_data = cls.preprocess(data, coords=coords)
+        if preprocessed_data is not None:
+            data_to_fit = preprocessed_data
+        else:
+            data_to_fit = data
+
+        guess_from_func = cls.guess(data_to_fit)
         if guess_from_func is not None:
             # override from guess provided as argument
             guess = {**guess_from_func, **guess}
 
-        return preprocessed_data.curvefit(
+        fit_result = data_to_fit.curvefit(
             coords=coords,
             func=cls.func,
             p0=guess,
             **curvefit_kwargs,
         )
+
+        # TODO: proper schema
+        # TODO: consider making preprocessed data store ptional
+        if preprocessed_data is not None:
+            fit_result = fit_result.assign(preprocessed_data=preprocessed_data)
+
+        return fit_result
 
     # TODO: 'fixed' method that returns a copy of cls where 'func' is wrapped
     # such that some of the parameters have fixed values
