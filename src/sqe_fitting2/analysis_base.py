@@ -135,6 +135,8 @@ class CurvefitAnalysis(BaseAnalysis):
 
         Args:
             curvefit_kwargs: Keyword arguments passed to `xr.DataArray.curvefit`.
+            guess: Parameter values for initial guess. These will override any
+                parameters returned by `cls.guess`.
         """
         # TODO: automatically determine coords? longest dim? and separate subclass for 2D fit with 2 longest coords?
         # TODO: bounds
@@ -145,8 +147,10 @@ class CurvefitAnalysis(BaseAnalysis):
         if curvefit_kwargs is None:
             curvefit_kwargs = {}
 
-        # TODO: merge guess and guess_from_func
-        _guess_from_func = cls.guess(preprocessed_data)
+        guess_from_func = cls.guess(preprocessed_data)
+        if guess_from_func is not None:
+            # override from guess provided as argument
+            guess = {**guess_from_func, **guess}
 
         return preprocessed_data.curvefit(
             coords=coords,
