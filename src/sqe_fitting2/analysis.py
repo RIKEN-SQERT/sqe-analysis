@@ -3,7 +3,6 @@ The main API of the library.
 """
 
 from collections.abc import Hashable
-from typing import cast
 
 import xarray as xr
 
@@ -58,15 +57,9 @@ class TimeOfFlightAnalysis(BaseAnalysis):
         signal = abs(post_step.median([dim]) - pre_step.median([dim]))
         noise = pre_step.std([dim])
         snr = signal / noise
-        return cast(
-            xr.Dataset,  # we know the output will be Dataset, because the input is Dataset
-            xr.combine_by_coords(
-                [
-                    step_locations.expand_dims(param=["step_location"]),
-                    snr.expand_dims(param=["SNR_estimate"]),
-                    # pre_step.expand_dims(param=["pre_step"]),
-                    # post_step.expand_dims(param=["post_step"]),
-                ],
-                join="outer",
-            ),
+        return xr.Dataset(
+            dict(  # noqa: C408
+                step_location=step_locations,
+                snr=snr,
+            )
         )
