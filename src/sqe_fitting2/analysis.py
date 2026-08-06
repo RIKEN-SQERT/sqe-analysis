@@ -31,29 +31,24 @@ class TimeOfFlightAnalysis(BaseAnalysis):
     """
 
     @classmethod
-    def preprocess(
-        cls, data: xr.DataArray, dim: Hashable | None = None
-    ) -> xr.DataArray:
-        return project_complex(data, dim=dim)
-
-    @classmethod
-    def analyze(
+    def run(
         cls,
-        preprocessed_data: xr.DataArray,
+        data: xr.DataArray,
         dim: Hashable | None = None,
         smoothing: int = 5,
     ) -> xr.Dataset:
         # TODO: how should I split project_complex vs smoothing in preprocess??
         if dim is None:
-            dim = longest_dim(preprocessed_data)
+            dim = longest_dim(data)
 
-        smoothed = preprocessed_data.rolling({dim: smoothing}, center=True).mean()
+        proj = project_complex(data, dim=dim)
+        smoothed = proj.rolling({dim: smoothing}, center=True).mean()
         diff = smoothed.differentiate(dim)
 
         # TODO: proper peak finding...
         step_locations = abs(diff).idxmax(dim)
-        pre_step = preprocessed_data.where(diff[dim] < step_locations)
-        post_step = preprocessed_data.where(diff[dim] > step_locations)
+        pre_step = proj.where(diff[dim] < step_locations)
+        post_step = proj.where(diff[dim] > step_locations)
         signal = abs(post_step.median([dim]) - pre_step.median([dim]))
         noise = pre_step.std([dim])
         snr = signal / noise
