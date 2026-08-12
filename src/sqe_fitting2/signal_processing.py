@@ -44,10 +44,10 @@ def project_complex(
         dim = longest_dim(data)
 
     centered = data - data.mean(dim)
-    # When the complex-valued points are centered around the origin, squaring
-    # them puts them all in the same quadrature. We can then take their mean and
-    # then use *half* of the angle of that point (since squaring doubles all
-    # angles) as the projection angle.
+    # When the complex-valued points lie on a line that crosses the origin,
+    # squaring them puts them all in the same quadrature. We can then take their
+    # mean and then use *half* of the angle of that point (since squaring
+    # doubles all angles) as the projection angle.
     angle = cast(
         xr.DataArray | xr.Dataset,
         xr.apply_ufunc(np.angle, (centered**2).mean(dim)) * 0.5,
