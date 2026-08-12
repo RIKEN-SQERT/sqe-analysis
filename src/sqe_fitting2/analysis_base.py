@@ -153,6 +153,11 @@ class CurvefitAnalysis(BaseAnalysis):
         if preprocessed_data is not None:
             intermediate_results["preprocessed_data"] = preprocessed_data
 
+        # TODO: maybe we should allow dict as argument of AnalysisResult and
+        # convert to dataset there, so we don't have to do this
+        if not intermediate_results:
+            intermediate_results = None
+
         return CurvefitAnalysisResult(
             params=fit_result.curvefit_coefficients.to_dataset("param"),
             # TODO: convert curvefit covariances to std (or store full covariance matrix???)
