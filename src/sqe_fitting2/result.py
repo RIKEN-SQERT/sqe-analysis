@@ -111,3 +111,13 @@ class CurvefitAnalysisResult(AnalysisResult):
         self._data = data
 
     # TODO: make it possible to do CurvefitAnalsis.func(x, **curvefit_analysis_result) ...
+
+    @property
+    def params_derived(self) -> DatasetView | None:
+        node = self._data.get("params_derived")
+        return node.dataset if node is not None else None
+
+    @property
+    def params_guess(self) -> DatasetView | None:
+        node = self._data.get("params_guess")
+        return node.dataset if node is not None else None
