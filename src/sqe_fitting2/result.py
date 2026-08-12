@@ -2,7 +2,6 @@ import xarray as xr
 from xarray.core.datatree import DatasetView
 
 
-# @dataclass(frozen=True) # TODO: is dataclass appropriate
 class AnalysisResult:
     """
     A thin wrapper around an Xarray DataTree.
