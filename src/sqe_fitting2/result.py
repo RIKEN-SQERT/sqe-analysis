@@ -27,14 +27,14 @@ class AnalysisResult:
         intermediate_results: xr.Dataset | None = None,
         debug_results: xr.Dataset | None = None,
     ):
-        self._data: xr.DataTree = xr.DataTree(
-            children=dict(  # noqa: C408
-                params=xr.DataTree(params),
-                params_std=xr.DataTree(params_std),
-                intermediate_results=xr.DataTree(intermediate_results),
-                debug_results=xr.DataTree(debug_results),
-            )
-        )
+        children: dict[str, xr.DataTree] = {"params": xr.DataTree(params)}
+        if params_std is not None:
+            children["params_std"] = xr.DataTree(params_std)
+        if intermediate_results is not None:
+            children["intermediate_results"] = xr.DataTree(intermediate_results)
+        if debug_results is not None:
+            children["debug_results"] = xr.DataTree(debug_results)
+        self._data: xr.DataTree = xr.DataTree(children=children)
 
     @property
     def params(self) -> DatasetView:
@@ -42,16 +42,19 @@ class AnalysisResult:
         return self._data.params.dataset
 
     @property
-    def params_std(self) -> DatasetView | None:  # TODO: check None return type...
-        return self._data.params_std.dataset
+    def params_std(self) -> DatasetView | None:
+        node = self._data.get("params_std")
+        return node.dataset if node is not None else None
 
     @property
     def intermediate_results(self) -> DatasetView | None:
-        return self._data.intermediate_results.dataset
+        node = self._data.get("intermediate_results")
+        return node.dataset if node is not None else None
 
     @property
     def debug_results(self) -> DatasetView | None:
-        return self._data.debug_results.dataset
+        node = self._data.get("debug_results")
+        return node.dataset if node is not None else None
 
     def to_netcdf(self, path: ...):
         raise NotImplementedError
@@ -100,9 +103,11 @@ class CurvefitAnalysisResult(AnalysisResult):
             intermediate_results=intermediate_results,
             debug_results=debug_results,
         )
-        self._data: xr.DataTree = self._data.assign(
-            params_derived=xr.DataTree(params_derived),
-            params_guess=xr.DataTree(params_guess),
-        )
+        data = self._data
+        if params_derived is not None:
+            data = data.assign(params_derived=xr.DataTree(params_derived))
+        if params_guess is not None:
+            data = data.assign(params_guess=xr.DataTree(params_guess))
+        self._data = data
 
     # TODO: make it possible to do CurvefitAnalsis.func(x, **curvefit_analysis_result) ...
