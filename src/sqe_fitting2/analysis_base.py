@@ -7,6 +7,8 @@ from typing import Any, override
 
 import xarray as xr
 
+from sqe_fitting2.result import AnalysisResult, CurvefitAnalysisResult
+
 
 class BaseAnalysis:
     """
@@ -24,7 +26,7 @@ class BaseAnalysis:
     """
 
     @classmethod
-    def run(cls, data: xr.DataArray, *argd: Any, **kwargs: Any) -> xr.Dataset:
+    def run(cls, data: xr.DataArray, *argd: Any, **kwargs: Any) -> AnalysisResult:
         """
         Perform data analysis.
 
@@ -109,7 +111,7 @@ class CurvefitAnalysis(BaseAnalysis):
         coords: str | xr.DataArray | Iterable[str | xr.DataArray],
         guess: CurvefitGuessType | None = None,
         curvefit_kwargs: dict[str, Any] | None = None,
-    ) -> xr.Dataset:
+    ) -> CurvefitAnalysisResult:
         """
         Analysis based on curve fitting.
 
