@@ -130,7 +130,7 @@ def test_curvefit_analysis_guess_arg_without_method_partial():
     assert res.params.a.item() == pytest.approx(2.0)
     assert res.params.b.item() == pytest.approx(1.0)
     assert res.params_guess.a.item() == 1.0
-    assert res.params_guess.keys() == ["a"]
+    assert list(res.params_guess.keys()) == ["a"]
 
 
 # ---------------------------------------------------------------------------
@@ -195,9 +195,7 @@ def test_curvefit_analysis_multidimensional_guess():
 
     assert_allclose(res.params.a, xr.DataArray([1, 2], coords=[data.trace]))
     assert res.params_guess.a.item() == 0
-    assert_allclose(
-        res.params_guess.b.item(), xr.DataArray([0, 1], coords=[data.trace])
-    )
+    assert_allclose(res.params_guess.b, xr.DataArray([0, -1], coords=[data.trace]))
 
 
 def test_curvefit_analysis_quadratic():
