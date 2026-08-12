@@ -85,6 +85,7 @@ class CurvefitAnalysisResult(AnalysisResult):
         params_std: xr.Dataset | None = None,
         params_derived: xr.Dataset | None = None,
         intermediate_results: xr.Dataset | None = None,
+        params_guess: xr.Dataset | None = None,
         debug_results: xr.Dataset | None = None,
     ):
         super().__init__(
@@ -94,7 +95,8 @@ class CurvefitAnalysisResult(AnalysisResult):
             debug_results=debug_results,
         )
         self._data: xr.DataTree = self._data.assign(
-            params_derived=xr.DataTree(params_derived)
+            params_derived=xr.DataTree(params_derived),
+            params_guess=xr.DataTree(params_guess),
         )
 
     # TODO: make it possible to do CurvefitAnalsis.func(x, **curvefit_analysis_result) ...
