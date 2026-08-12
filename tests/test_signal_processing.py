@@ -1,6 +1,9 @@
 import numpy as np
 import xarray as xr
-from xarray.testing import assert_equal  # pyright: ignore[reportUnknownVariableType]
+from xarray.testing import (  # pyright: ignore[reportUnknownVariableType]
+    assert_allclose,
+    assert_equal,
+)
 
 from sqe_fitting2.signal_processing import project_complex
 
@@ -51,3 +54,19 @@ def test_project_complex_dataset_mixed():
     ds = xr.Dataset({"v": (["x"], np.array([-3 - 4j, 3 + 4j]))})
     projected = project_complex(ds)
     assert_equal(projected, xr.Dataset({"v": (["x"], [-5, 5])}))
+
+
+def test_project_complex_2d_tuple_dim():
+    """Project 2D complex data across both dimensions simultaneously."""
+    da = xr.DataArray(
+        # The data forms a triangle in the complex plane. Projecting across both
+        # dimensions should yeld points at +-1. Projecting along a
+        # single dimension would yield points at +- sqrt(5) / 2.
+        np.array([[-1, 2j], [1, 2j]]),
+        dims=["x", "y"],
+    )
+    projected = project_complex(da, dim=("x", "y"))
+    assert_allclose(
+        projected,
+        xr.DataArray([[-1, 1], [-1, 1]], dims=["x", "y"]),
+    )
