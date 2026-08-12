@@ -2,9 +2,8 @@
 The main API of the library.
 """
 
-from collections.abc import Hashable
-
 import xarray as xr
+from xarray.core.types import Dims
 
 from sqe_fitting2.analysis_base import BaseAnalysis
 from sqe_fitting2.signal_processing import project_complex
@@ -34,7 +33,7 @@ class TimeOfFlightAnalysis(BaseAnalysis):
     def run(
         cls,
         data: xr.DataArray,
-        dim: Hashable | None = None,
+        dim: Dims | None = None,
         smoothing: int = 5,
     ) -> xr.Dataset:
         # TODO: how should I split project_complex vs smoothing in preprocess??
