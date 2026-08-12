@@ -147,12 +147,18 @@ class CurvefitAnalysis(BaseAnalysis):
             **curvefit_kwargs,
         )
 
-        # TODO: proper schema
+        intermediate_results = {}
+
         # TODO: consider making preprocessed data store ptional
         if preprocessed_data is not None:
-            fit_result = fit_result.assign(preprocessed_data=preprocessed_data)
+            intermediate_results["preprocessed_data"] = preprocessed_data
 
-        return fit_result
+        return CurvefitAnalysisResult(
+            params=fit_result.curvefit_coefficients.to_dataset("param"),
+            # TODO: convert curvefit covariances to std (or store full covariance matrix???)
+            # params_std=fit_result.curvefit_covariances.to_dataset("param"),
+            intermediate_results=intermediate_results,
+        )
 
     # TODO: 'fixed' method that returns a copy of cls where 'func' is wrapped
     # such that some of the parameters have fixed values
