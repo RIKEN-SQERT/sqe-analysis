@@ -63,3 +63,38 @@ class AnalysisResult:
         return self._data._repr_html_().replace(
             "xarray.DataTree", f"{self.__class__.__name__} (xarray.DataTree)"
         )
+
+
+class CurvefitAnalysisResult(AnalysisResult):
+    """
+    Specialized analysis result for curve fitting-based analysis.
+
+    Args:
+        params: The parameters of the model function that minimize the error
+            between the model prediction and the data. These should always match
+            exactly the arguments of the model function, so that they can be
+            used to evaluate it. Additional quantities of interest should be
+            added to `params_derived`.
+        params_derived: Additional quantities of interest derived from the fit
+            parameters.
+    """
+
+    def __init__(
+        self,
+        params: xr.Dataset,
+        params_std: xr.Dataset | None = None,
+        params_derived: xr.Dataset | None = None,
+        intermediate_results: xr.Dataset | None = None,
+        debug_results: xr.Dataset | None = None,
+    ):
+        super().__init__(
+            params=params,
+            params_std=params_std,
+            intermediate_results=intermediate_results,
+            debug_results=debug_results,
+        )
+        self._data: xr.DataTree = self._data.assign(
+            params_derived=xr.DataTree(params_derived)
+        )
+
+    # TODO: make it possible to do CurvefitAnalsis.func(x, **curvefit_analysis_result) ...
