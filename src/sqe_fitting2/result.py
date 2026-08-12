@@ -6,8 +6,9 @@ class AnalysisResult:
     """
     A thin wrapper around an Xarray DataTree.
 
-    This wrapper exists so that we can do type-checking on the datasets stored
-    in the DataTree and verify that they follow the result schema.
+    This wrapper exists so that we can do type-checking and autocomplete on the
+    datasets stored in the DataTree, and verify that they follow the result
+    schema.
 
     Args:
         params: The qantities of interest of the analysis. The Dataset should
@@ -71,12 +72,17 @@ class CurvefitAnalysisResult(AnalysisResult):
 
     Args:
         params: The parameters of the model function that minimize the error
-            between the model prediction and the data. These should always match
-            exactly the arguments of the model function, so that they can be
-            used to evaluate it. Additional quantities of interest should be
+            between the model prediction and the data. These should always
+            exactly match the arguments of the model function, so that they can
+            be used to evaluate it. Additional quantities of interest should be
             added to `params_derived`.
         params_derived: Additional quantities of interest derived from the fit
-            parameters.
+            parameters that are not arguments to the model function.
+        params_guess: The initial guess used for the fitting, either
+            calculated using the `guess` method or explicitly passed as
+            arguments. May not contain all parameters of the model function, so
+            it might not be possible to directly evaluate it with the guess
+            values.
     """
 
     def __init__(
