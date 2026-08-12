@@ -5,21 +5,10 @@ Testing of the data analysis methods, using the real example data
 import numpy as np
 import pytest
 import xarray as xr
+from xarray.testing import assert_allclose
 
-from sqe_fitting2.analysis_base import BaseAnalysis, CurvefitAnalysis
+from sqe_fitting2.analysis_base import CurvefitAnalysis
 from sqe_fitting2.result import AnalysisResult, CurvefitAnalysisResult
-
-# ---------------------------------------------------------------------------
-# BaseAnalysis
-# ---------------------------------------------------------------------------
-
-
-def test_base_analysis_run_raises():
-    """BaseAnalysis.run should raise NotImplementedError."""
-    data = xr.DataArray([1, 2, 3])
-    with pytest.raises(NotImplementedError, match="Analysis not implemented"):
-        BaseAnalysis.run(data)
-
 
 # ---------------------------------------------------------------------------
 # CurvefitAnalysis
@@ -38,7 +27,7 @@ class LineFitWithGuess(CurvefitAnalysis):
         return a * x + b
 
     @classmethod
-    def guess(cls, data):
+    def guess(cls, preprocessed_data):
         return {"a": 0.0, "b": 0.0}
 
 
@@ -60,22 +49,6 @@ class QuadraticFit(CurvefitAnalysis):
         return a * x**2 + b * x + c
 
 
-def test_curvefit_func_raises_for_abstract():
-    """Calling CurvefitAnalysis.func directly should raise NotImplementedError."""
-    with pytest.raises(NotImplementedError, match="Model function not implemented"):
-        CurvefitAnalysis.func(0)
-
-
-def test_curvefit_guess_default_returns_none():
-    """Default guess method should return None."""
-    assert CurvefitAnalysis.guess(xr.DataArray([1])) is None
-
-
-def test_curvefit_preprocess_default_returns_none():
-    """Default preprocess method should return None."""
-    assert CurvefitAnalysis.preprocess(xr.DataArray([1]), coords="x") is None
-
-
 # ---------------------------------------------------------------------------
 # Basic fitting
 # ---------------------------------------------------------------------------
@@ -89,12 +62,13 @@ def test_curvefit_analysis_basic():
         coords="x",
     )
 
-    assert res.params.a.item() == pytest.approx(2.0)
-    assert res.params.b.item() == pytest.approx(-1.0)
+    assert isinstance(res, CurvefitAnalysisResult)
+    assert res.params.a.item() == 2.0
+    assert res.params.b.item() == -1.0
 
 
 # ---------------------------------------------------------------------------
-# Guess: method and argument
+# CurvefitAnalysis guess
 # ---------------------------------------------------------------------------
 
 
@@ -108,6 +82,8 @@ def test_curvefit_analysis_with_guess_method():
 
     assert res.params.a.item() == pytest.approx(2.0)
     assert res.params.b.item() == pytest.approx(1.0)
+    assert res.params_guess.a.item() == 0
+    assert res.params_guess.b.item() == 0
 
 
 def test_curvefit_analysis_with_guess_arg():
@@ -122,20 +98,8 @@ def test_curvefit_analysis_with_guess_arg():
 
     assert res.params.a.item() == pytest.approx(2.0)
     assert res.params.b.item() == pytest.approx(1.0)
-
-
-def test_curvefit_analysis_guess_arg_overrides_method():
-    """When both method and arg provide a guess, arg values take priority."""
-
-    # Method returns a=0, b=0. Arg overrides both.
-    res = LineFitWithGuess.run(
-        xr.DataArray([1, 3, 5], coords=[("x", [0, 1, 2])]),
-        coords="x",
-        guess={"a": 1.5, "b": 0.5},
-    )
-
-    assert res.params.a.item() == pytest.approx(2.0)
-    assert res.params.b.item() == pytest.approx(1.0)
+    assert res.params_guess.a.item() == 1
+    assert res.params_guess.b.item() == 0
 
 
 def test_curvefit_analysis_guess_arg_without_method():
@@ -149,6 +113,24 @@ def test_curvefit_analysis_guess_arg_without_method():
 
     assert res.params.a.item() == pytest.approx(2.0)
     assert res.params.b.item() == pytest.approx(1.0)
+
+
+def test_curvefit_analysis_guess_arg_without_method_partial():
+    """
+    A guess argument works even when the class has no custom guess method.
+    Only the parameters given in the arguments should show up in the output.
+    """
+
+    res = LineFit.run(
+        xr.DataArray([1, 3, 5], coords=[("x", [0, 1, 2])]),
+        coords="x",
+        guess={"a": 1.0},
+    )
+
+    assert res.params.a.item() == pytest.approx(2.0)
+    assert res.params.b.item() == pytest.approx(1.0)
+    assert res.params_guess.a.item() == 1.0
+    assert res.params_guess.keys() == ["a"]
 
 
 # ---------------------------------------------------------------------------
@@ -165,26 +147,10 @@ def test_curvefit_analysis_preprocessing():
 
     assert res.params.a.item() == pytest.approx(2.0)
     assert res.params.b.item() == pytest.approx(1.0)
-
-
-def test_curvefit_analysis_preprocessing_stores_intermediate():
-    """Preprocessed data should be available in intermediate_results."""
-    data = xr.DataArray([101, 103, 105], coords=[("x", [0, 1, 2])], dims=["x"])
-
-    res = LineFitWithPreprocess.run(data, coords="x")
-
-    assert res.intermediate_results is not None
-    assert "preprocessed_data" in res.intermediate_results
-
-
-def test_curvefit_analysis_no_preprocessing_no_intermediate():
-    """Without preprocessing, intermediate_results should be None."""
-    res = LineFit.run(
-        xr.DataArray([1, 3, 5], coords=[("x", [0, 1, 2])]),
-        coords="x",
+    assert_allclose(
+        res.intermediate_results.preprocessed_data,
+        xr.DataArray([1, 3, 5], coords=[data.x]),
     )
-
-    assert res.intermediate_results is None
 
 
 # ---------------------------------------------------------------------------
@@ -205,37 +171,33 @@ def test_curvefit_analysis_multidimensional():
 
     res = LineFit.run(data, coords="x")
 
-    # trace a: a=1, b=0
-    assert res.params.a.sel(trace="a").item() == pytest.approx(1.0)
-    assert res.params.b.sel(trace="a").item() == pytest.approx(0.0)
-
-    # trace b: a=2, b=-1
-    assert res.params.a.sel(trace="b").item() == pytest.approx(2.0)
-    assert res.params.b.sel(trace="b").item() == pytest.approx(-1.0)
-
-    # trace c: a=-1, b=5
-    assert res.params.a.sel(trace="c").item() == pytest.approx(-1.0)
-    assert res.params.b.sel(trace="c").item() == pytest.approx(5.0)
+    assert_allclose(res.params.a, xr.DataArray([1, 2, -1], coords=[data.trace]))
+    assert_allclose(res.params.b, xr.DataArray([0, -1, 5], coords=[data.trace]))
 
 
 def test_curvefit_analysis_multidimensional_guess():
     """Guess can be a scalar (same for all traces) or per-trace."""
 
-    # Scalar guess broadcast to all traces
-    res = LineFit.run(
-        xr.DataArray(
-            [
-                [0.0, 1.0, 2.0, 3.0, 4.0],
-                [-1.0, 1.0, 3.0, 5.0, 7.0],
-            ],
-            coords=[("trace", ["a", "b"]), ("x", [0, 1, 2, 3, 4])],
-        ),
-        coords="x",
-        guess={"a": 0.0, "b": 0.0},
+    data = xr.DataArray(
+        [
+            [0.0, 1.0, 2.0, 3.0, 4.0],
+            [-1.0, 1.0, 3.0, 5.0, 7.0],
+        ],
+        coords=[("trace", ["a", "b"]), ("x", [0, 1, 2, 3, 4])],
     )
 
-    assert res.params.a.sel(trace="a").item() == pytest.approx(1.0)
-    assert res.params.a.sel(trace="b").item() == pytest.approx(2.0)
+    # Scalar guess broadcast to all traces
+    res = LineFit.run(
+        data,
+        coords="x",
+        guess={"a": 0.0, "b": xr.DataArray([0, -1], coords=[data.trace])},
+    )
+
+    assert_allclose(res.params.a, xr.DataArray([1, 2], coords=[data.trace]))
+    assert res.params_guess.a.item() == 0
+    assert_allclose(
+        res.params_guess.b.item(), xr.DataArray([0, 1], coords=[data.trace])
+    )
 
 
 def test_curvefit_analysis_quadratic():
