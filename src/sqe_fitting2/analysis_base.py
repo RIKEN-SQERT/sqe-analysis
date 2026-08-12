@@ -3,7 +3,7 @@ Abstract base classes for data analysis
 """
 
 from collections.abc import Iterable, Mapping
-from typing import Any
+from typing import Any, override
 
 import xarray as xr
 
@@ -102,6 +102,7 @@ class CurvefitAnalysis(BaseAnalysis):
         return None
 
     @classmethod
+    @override
     def run(
         cls,
         data: xr.DataArray,
