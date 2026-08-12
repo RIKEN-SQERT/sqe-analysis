@@ -160,11 +160,17 @@ class CurvefitAnalysis(BaseAnalysis):
         else:
             intermediate_results = xr.Dataset(intermediate_results)
 
+        # TODO: this is similar to the intermediate_results case above but inconsistent...
+        params_guess = None
+        if guess:
+            params_guess = xr.Dataset(guess)
+
         return CurvefitAnalysisResult(
             params=fit_result.curvefit_coefficients.to_dataset("param"),
             # TODO: convert curvefit covariances to std (or store full covariance matrix???)
             # params_std=fit_result.curvefit_covariances.to_dataset("param"),
             intermediate_results=intermediate_results,
+            params_guess=params_guess,
         )
 
     # TODO: 'fixed' method that returns a copy of cls where 'func' is wrapped
