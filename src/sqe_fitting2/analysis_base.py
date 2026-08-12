@@ -157,6 +157,8 @@ class CurvefitAnalysis(BaseAnalysis):
         # convert to dataset there, so we don't have to do this
         if not intermediate_results:
             intermediate_results = None
+        else:
+            intermediate_results = xr.Dataset(intermediate_results)
 
         return CurvefitAnalysisResult(
             params=fit_result.curvefit_coefficients.to_dataset("param"),
