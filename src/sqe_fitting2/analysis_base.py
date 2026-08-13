@@ -3,7 +3,7 @@ Abstract base classes for data analysis
 """
 
 from collections.abc import Iterable, Mapping
-from typing import Any, override
+from typing import Any, cast, override
 
 import xarray as xr
 
@@ -161,16 +161,28 @@ class CurvefitAnalysis(BaseAnalysis):
             intermediate_results = xr.Dataset(intermediate_results)
 
         # TODO: this is similar to the intermediate_results case above but inconsistent...
-        params_guess = None
+        fit_params_guess = None
         if guess:
-            params_guess = xr.Dataset(guess)
+            fit_params_guess = xr.Dataset(guess)
+
+        fit_params = cast(
+            xr.Dataset,
+            fit_result.curvefit_coefficients.to_dataset("param"),
+        )
+        result_params = fit_params
+        extra_params = cls.extra_params(result_params)
+        if extra_params is not None:
+            result_params = result_params.merge(extra_params)
 
         return CurvefitAnalysisResult(
-            params=fit_result.curvefit_coefficients.to_dataset("param"),
+            # TODO: consider possibility of excluding some of the fit parameters
+            # from params (e.g. with a `exlcude_params` attribute).
+            params=result_params,
+            fit_params=fit_params,
             # TODO: convert curvefit covariances to std (or store full covariance matrix???)
             # params_std=fit_result.curvefit_covariances.to_dataset("param"),
             intermediate_results=intermediate_results,
-            params_guess=params_guess,
+            fit_params_guess=fit_params_guess,
         )
 
     # TODO: 'fixed' method that returns a copy of cls where 'func' is wrapped
