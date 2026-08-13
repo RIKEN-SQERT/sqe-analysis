@@ -77,14 +77,16 @@ class CurvefitAnalysisResult(AnalysisResult):
     Specialized analysis result for curve fitting-based analysis.
 
     Args:
-        params: The parameters of the model function that minimize the error
+        params: The quantities of interest of the analysis. These may be
+            parameters of the model function, but may also contain additional
+            derived quantities, and may not necessarily contain all model
+            function parameters if they are not of interest. To evaluate the
+            model function, use `fit_params` instead.
+        fit_params: The parameters of the model function that minimize the error
             between the model prediction and the data. These should always
             exactly match the arguments of the model function, so that they can
-            be used to evaluate it. Additional quantities of interest should be
-            added to `params_derived`.
-        params_derived: Additional quantities of interest derived from the fit
-            parameters that are not arguments to the model function.
-        params_guess: The initial guess used for the fitting, either
+            be used to evaluate it.
+        fit_params_guess: The initial guess used for the fitting, either
             calculated using the `guess` method or explicitly passed as
             arguments. May not contain all parameters of the model function, so
             it might not be possible to directly evaluate it with the guess
@@ -94,10 +96,10 @@ class CurvefitAnalysisResult(AnalysisResult):
     def __init__(
         self,
         params: xr.Dataset,
+        fit_params: xr.Dataset,
         params_std: xr.Dataset | None = None,
-        params_derived: xr.Dataset | None = None,
         intermediate_results: xr.Dataset | None = None,
-        params_guess: xr.Dataset | None = None,
+        fit_params_guess: xr.Dataset | None = None,
         debug_results: xr.Dataset | None = None,
     ):
         super().__init__(
@@ -106,21 +108,24 @@ class CurvefitAnalysisResult(AnalysisResult):
             intermediate_results=intermediate_results,
             debug_results=debug_results,
         )
-        data = self._data
-        if params_derived is not None:
-            data = data.assign(params_derived=xr.DataTree(params_derived))
-        if params_guess is not None:
-            data = data.assign(params_guess=xr.DataTree(params_guess))
+        data = self._data.assign(fit_params=xr.DataTree(fit_params))
+        if fit_params_guess is not None:
+            data = data.assign(fit_params_guess=xr.DataTree(fit_params_guess))
         self._data = data
 
-    # TODO: make it possible to do CurvefitAnalsis.func(x, **curvefit_analysis_result) ...
+    @property
+    def fit_params(self) -> DatasetView:
+        """
+        Dataset containing the parameters of the model function that minimize
+        the error between the model prediction and the data. This can be used to
+        evaluate the model function:
+
+            >>> result = MyCurvefitAnalysis.run(data, dim="x")
+            >>> fit_eval = MyCurvefitAnalysis.func(data.x, **result.fit_params)
+        """
+        return self._data.fit_params.dataset
 
     @property
-    def params_derived(self) -> DatasetView | None:
-        node = self._data.get("params_derived")
-        return node.dataset if node is not None else None
-
-    @property
-    def params_guess(self) -> DatasetView | None:
-        node = self._data.get("params_guess")
+    def fit_params_guess(self) -> DatasetView | None:
+        node = self._data.get("fit_params_guess")
         return node.dataset if node is not None else None
