@@ -25,6 +25,7 @@ class AnalysisResult:
     def __init__(
         self,
         params: xr.Dataset,
+        *,
         params_std: xr.Dataset | None = None,
         intermediate_results: xr.Dataset | None = None,
         debug_results: xr.Dataset | None = None,
@@ -97,6 +98,7 @@ class CurvefitAnalysisResult(AnalysisResult):
         self,
         params: xr.Dataset,
         fit_params: xr.Dataset,
+        *,
         params_std: xr.Dataset | None = None,
         intermediate_results: xr.Dataset | None = None,
         fit_params_guess: xr.Dataset | None = None,
