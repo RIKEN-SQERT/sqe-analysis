@@ -100,6 +100,7 @@ class CurvefitAnalysisResult(AnalysisResult):
         fit_params: xr.Dataset,
         *,
         params_std: xr.Dataset | None = None,
+        # TODO: fit_params_std for the uncertainties of the fit parameters
         intermediate_results: xr.Dataset | None = None,
         fit_params_guess: xr.Dataset | None = None,
         debug_results: xr.Dataset | None = None,
@@ -110,6 +111,8 @@ class CurvefitAnalysisResult(AnalysisResult):
             intermediate_results=intermediate_results,
             debug_results=debug_results,
         )
+        # TODO: validate that the parameters that are present both in params and
+        # fit_params are equal
         data = self._data.assign(fit_params=xr.DataTree(fit_params))
         if fit_params_guess is not None:
             data = data.assign(fit_params_guess=xr.DataTree(fit_params_guess))
