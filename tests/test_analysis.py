@@ -2,6 +2,8 @@
 Testing of the data analysis methods, using the real example data
 """
 
+from typing import override
+
 import numpy as np
 import pytest
 import xarray as xr
@@ -41,6 +43,17 @@ class LineFitWithPreprocess(CurvefitAnalysis):
     @classmethod
     def preprocess(cls, data, coords):
         return data - 100
+
+
+class LineFitWithDerivedQuantity(CurvefitAnalysis):
+    @classmethod
+    def func(cls, x, a, b):
+        return a * x + b
+
+    @classmethod
+    @override
+    def extra_params(cls, fit_params: xr.Dataset) -> xr.Dataset | None:
+        return xr.Dataset({"x_intercept": -fit_params.b / fit_params.a})
 
 
 class QuadraticFit(CurvefitAnalysis):
@@ -165,6 +178,28 @@ def test_curvefit_analysis_preprocessing():
         res.intermediate_results.preprocessed_data,
         xr.DataArray([1, 3, 5], coords=[data.x]),
     )
+
+
+# ---------------------------------------------------------------------------
+# Derived quantities
+# ---------------------------------------------------------------------------
+
+
+def test_curvefit_analysis_derived_quantities():
+    res = LineFitWithDerivedQuantity.run(
+        xr.DataArray([1, 3, 5], coords=[("x", [0, 1, 2])]),
+        coords="x",
+        guess={"a": 1.0},
+    )
+
+    assert list(res.params.keys()) == ["a", "b", "x_intercept"]
+    assert list(res.fit_params.keys()) == ["a", "b"]
+
+    assert res.params.a.item() == 2.0
+    assert res.params.b.item() == 1.0
+    assert res.params.x_intercept == -0.5
+    assert res.fit_params.a.item() == 2.0
+    assert res.fit_params.b.item() == 1.0
 
 
 # ---------------------------------------------------------------------------

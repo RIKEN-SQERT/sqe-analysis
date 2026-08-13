@@ -187,3 +187,21 @@ class CurvefitAnalysis(BaseAnalysis):
 
     # TODO: 'fixed' method that returns a copy of cls where 'func' is wrapped
     # such that some of the parameters have fixed values
+
+    @classmethod
+    def extra_params(cls, fit_params: xr.Dataset) -> xr.Dataset | None:
+        """
+        Additional quantities of intereset derived from the fit results that are
+        not parameters of the model function.
+
+        Return None for no additional quantities.
+
+        Args:
+            fit_params: The result of the curve fitting. It should be a Dataset
+                with keys for each fit parameter
+
+        Returns:
+            An Xarray Dataset with data variables for each of the additional
+            derived quantities, or None if there are no derived quantities.
+        """
+        return None
