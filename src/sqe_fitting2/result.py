@@ -17,7 +17,9 @@ class AnalysisResult:
             parameters, if available.
         intermediate_results: Additional analysis results that are needed for
             visualization, but not direct quantities of interest of the analysis
-        debug_results: Additional analysis results that are useful for troubleshooting the analysis, but
+        debug_results: Additional analysis results that are useful for
+            troubleshooting the analysis, but not necessary for visualization.
+            These may not be saved when ??saving the result as netcdf??.
     """
 
     def __init__(
