@@ -65,6 +65,8 @@ def test_curvefit_analysis_basic():
     assert isinstance(res, CurvefitAnalysisResult)
     assert res.params.a.item() == 2.0
     assert res.params.b.item() == -1.0
+    assert res.fit_params.a.item() == 2.0
+    assert res.fit_params.b.item() == -1.0
 
 
 # ---------------------------------------------------------------------------
@@ -82,8 +84,10 @@ def test_curvefit_analysis_with_guess_method():
 
     assert res.params.a.item() == pytest.approx(2.0)
     assert res.params.b.item() == pytest.approx(1.0)
-    assert res.params_guess.a.item() == 0
-    assert res.params_guess.b.item() == 0
+    assert res.fit_params.a.item() == pytest.approx(2.0)
+    assert res.fit_params.b.item() == pytest.approx(1.0)
+    assert res.fit_params_guess.a.item() == 0
+    assert res.fit_params_guess.b.item() == 0
 
 
 def test_curvefit_analysis_with_guess_arg():
@@ -98,8 +102,10 @@ def test_curvefit_analysis_with_guess_arg():
 
     assert res.params.a.item() == pytest.approx(2.0)
     assert res.params.b.item() == pytest.approx(1.0)
-    assert res.params_guess.a.item() == 1
-    assert res.params_guess.b.item() == 0
+    assert res.fit_params.a.item() == pytest.approx(2.0)
+    assert res.fit_params.b.item() == pytest.approx(1.0)
+    assert res.fit_params_guess.a.item() == 1
+    assert res.fit_params_guess.b.item() == 0
 
 
 def test_curvefit_analysis_guess_arg_without_method():
@@ -113,6 +119,10 @@ def test_curvefit_analysis_guess_arg_without_method():
 
     assert res.params.a.item() == pytest.approx(2.0)
     assert res.params.b.item() == pytest.approx(1.0)
+    assert res.fit_params.a.item() == pytest.approx(2.0)
+    assert res.fit_params.b.item() == pytest.approx(1.0)
+    assert res.fit_params_guess.a.item() == 1.0
+    assert res.fit_params_guess.b.item() == 0.0
 
 
 def test_curvefit_analysis_guess_arg_without_method_partial():
@@ -129,8 +139,10 @@ def test_curvefit_analysis_guess_arg_without_method_partial():
 
     assert res.params.a.item() == pytest.approx(2.0)
     assert res.params.b.item() == pytest.approx(1.0)
-    assert res.params_guess.a.item() == 1.0
-    assert list(res.params_guess.keys()) == ["a"]
+    assert res.fit_params.a.item() == pytest.approx(2.0)
+    assert res.fit_params.b.item() == pytest.approx(1.0)
+    assert res.fit_params_guess.a.item() == 1.0
+    assert list(res.fit_params_guess.keys()) == ["a"]
 
 
 # ---------------------------------------------------------------------------
@@ -147,6 +159,8 @@ def test_curvefit_analysis_preprocessing():
 
     assert res.params.a.item() == pytest.approx(2.0)
     assert res.params.b.item() == pytest.approx(1.0)
+    assert res.fit_params.a.item() == pytest.approx(2.0)
+    assert res.fit_params.b.item() == pytest.approx(1.0)
     assert_allclose(
         res.intermediate_results.preprocessed_data,
         xr.DataArray([1, 3, 5], coords=[data.x]),
@@ -173,6 +187,8 @@ def test_curvefit_analysis_multidimensional():
 
     assert_allclose(res.params.a, xr.DataArray([1, 2, -1], coords=[data.trace]))
     assert_allclose(res.params.b, xr.DataArray([0, -1, 5], coords=[data.trace]))
+    assert_allclose(res.fit_params.a, xr.DataArray([1, 2, -1], coords=[data.trace]))
+    assert_allclose(res.fit_params.b, xr.DataArray([0, -1, 5], coords=[data.trace]))
 
 
 def test_curvefit_analysis_multidimensional_guess():
@@ -194,8 +210,9 @@ def test_curvefit_analysis_multidimensional_guess():
     )
 
     assert_allclose(res.params.a, xr.DataArray([1, 2], coords=[data.trace]))
-    assert res.params_guess.a.item() == 0
-    assert_allclose(res.params_guess.b, xr.DataArray([0, -1], coords=[data.trace]))
+    assert_allclose(res.fit_params.a, xr.DataArray([1, 2], coords=[data.trace]))
+    assert res.fit_params_guess.a.item() == 0
+    assert_allclose(res.fit_params_guess.b, xr.DataArray([0, -1], coords=[data.trace]))
 
 
 def test_curvefit_analysis_quadratic():
@@ -212,3 +229,6 @@ def test_curvefit_analysis_quadratic():
     assert res.params.a.item() == pytest.approx(2.0)
     assert res.params.b.item() == pytest.approx(3.0)
     assert res.params.c.item() == pytest.approx(1.0)
+    assert res.fit_params.a.item() == pytest.approx(2.0)
+    assert res.fit_params.b.item() == pytest.approx(3.0)
+    assert res.fit_params.c.item() == pytest.approx(1.0)
