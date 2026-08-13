@@ -14,7 +14,7 @@ class AnalysisResult:
         params: The qantities of interest of the analysis. The Dataset should
             have one data variable for each parameter.
         params_std: Estimates of the standard deviations of the extracted
-            parameters, if available.
+            parameters, if available. May contain only a subset of `params`.
         intermediate_results: Additional analysis results that are needed for
             visualization, but not direct quantities of interest of the analysis
         debug_results: Additional analysis results that are useful for
