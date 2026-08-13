@@ -59,7 +59,8 @@ class AnalysisResult:
     def to_netcdf(self, path: ...):
         raise NotImplementedError
 
-    def from_netcdf(self, path: ...):
+    @classmethod
+    def from_netcdf(cls, path: ...):
         # TODO: option / function to validate the schema
         raise NotImplementedError
 
