@@ -23,6 +23,10 @@ class AnalysisResult:
             These may not be saved when ??saving the result as netcdf??.
     """
 
+    # TODO: validate that params_std is a subset of params (and the coordinates match)
+    # TODO: success attribute (also verify that the coordinates match with params)
+    # TODO: source description (dataset id, analysis class that produced this result)
+
     params: xr.Dataset
     params_std: xr.Dataset | None = None
     intermediate_results: xr.Dataset | None = None
