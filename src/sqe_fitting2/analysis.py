@@ -2,10 +2,13 @@
 The main API of the library.
 """
 
+from typing import override
+
 import xarray as xr
 from xarray.core.types import Dims
 
 from sqe_fitting2.analysis_base import BaseAnalysis
+from sqe_fitting2.result import AnalysisResult
 from sqe_fitting2.signal_processing import project_complex
 from sqe_fitting2.xr_util import longest_dim
 
@@ -30,12 +33,13 @@ class TimeOfFlightAnalysis(BaseAnalysis):
     """
 
     @classmethod
+    @override
     def run(
         cls,
         data: xr.DataArray,
         dim: Dims | None = None,
         smoothing: int = 5,
-    ) -> xr.Dataset:
+    ) -> AnalysisResult:
         # TODO: how should I split project_complex vs smoothing in preprocess??
         if dim is None:
             dim = longest_dim(data)
@@ -51,9 +55,16 @@ class TimeOfFlightAnalysis(BaseAnalysis):
         signal = abs(post_step.median([dim]) - pre_step.median([dim]))
         noise = pre_step.std([dim])
         snr = signal / noise
-        return xr.Dataset(
-            dict(  # noqa: C408
-                step_location=step_locations,
-                snr=snr,
-            )
+        return AnalysisResult(
+            params=xr.Dataset(
+                dict(  # noqa: C408
+                    step_location=step_locations,
+                    snr=snr,
+                ),
+            ),
+            intermediate_results=xr.Dataset(
+                dict(  # noqa: C408
+                    data_projected=proj,
+                )
+            ),
         )

@@ -3,9 +3,11 @@ Abstract base classes for data analysis
 """
 
 from collections.abc import Iterable, Mapping
-from typing import Any, override
+from typing import Any, cast, override
 
 import xarray as xr
+
+from sqe_fitting2.result import AnalysisResult, CurvefitAnalysisResult
 
 
 class BaseAnalysis:
@@ -24,7 +26,7 @@ class BaseAnalysis:
     """
 
     @classmethod
-    def run(cls, data: xr.DataArray, *argd: Any, **kwargs: Any) -> xr.Dataset:
+    def run(cls, data: xr.DataArray, *argd: Any, **kwargs: Any) -> AnalysisResult:
         """
         Perform data analysis.
 
@@ -109,7 +111,7 @@ class CurvefitAnalysis(BaseAnalysis):
         coords: str | xr.DataArray | Iterable[str | xr.DataArray],
         guess: CurvefitGuessType | None = None,
         curvefit_kwargs: dict[str, Any] | None = None,
-    ) -> xr.Dataset:
+    ) -> CurvefitAnalysisResult:
         """
         Analysis based on curve fitting.
 
@@ -145,12 +147,61 @@ class CurvefitAnalysis(BaseAnalysis):
             **curvefit_kwargs,
         )
 
-        # TODO: proper schema
+        intermediate_results = {}
+
         # TODO: consider making preprocessed data store ptional
         if preprocessed_data is not None:
-            fit_result = fit_result.assign(preprocessed_data=preprocessed_data)
+            intermediate_results["preprocessed_data"] = preprocessed_data
 
-        return fit_result
+        # TODO: maybe we should allow dict as argument of AnalysisResult and
+        # convert to dataset there, so we don't have to do this
+        if not intermediate_results:
+            intermediate_results = None
+        else:
+            intermediate_results = xr.Dataset(intermediate_results)
+
+        # TODO: this is similar to the intermediate_results case above but inconsistent...
+        fit_params_guess = None
+        if guess:
+            fit_params_guess = xr.Dataset(guess)
+
+        fit_params = cast(
+            xr.Dataset,
+            fit_result.curvefit_coefficients.to_dataset("param"),
+        )
+        result_params = fit_params
+        extra_params = cls.extra_params(result_params)
+        if extra_params is not None:
+            result_params = result_params.merge(extra_params)
+
+        return CurvefitAnalysisResult(
+            # TODO: consider possibility of excluding some of the fit parameters
+            # from params (e.g. with a `exlcude_params` attribute).
+            params=result_params,
+            fit_params=fit_params,
+            # TODO: convert curvefit covariances to std (or store full covariance matrix???)
+            # params_std=fit_result.curvefit_covariances.to_dataset("param"),
+            intermediate_results=intermediate_results,
+            fit_params_guess=fit_params_guess,
+        )
 
     # TODO: 'fixed' method that returns a copy of cls where 'func' is wrapped
     # such that some of the parameters have fixed values
+
+    @classmethod
+    def extra_params(cls, fit_params: xr.Dataset) -> xr.Dataset | None:
+        """
+        Additional quantities of intereset derived from the fit results that are
+        not parameters of the model function.
+
+        Return None for no additional quantities.
+
+        Args:
+            fit_params: The result of the curve fitting. It should be a Dataset
+                with keys for each fit parameter
+
+        Returns:
+            An Xarray Dataset with data variables for each of the additional
+            derived quantities, or None if there are no derived quantities.
+        """
+        return None
