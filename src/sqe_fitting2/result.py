@@ -37,10 +37,21 @@ class AnalysisResult:
         raise NotImplementedError
 
     # TODO: reimplement this after changing from DataTree wrapper to dataclass
-    # def _repr_html_(self):
-    #    return self._data._repr_html_().replace(
-    #        "xarray.DataTree", f"{self.__class__.__name__} (xarray.DataTree)"
-    #    )
+    def _repr_html_(self):
+        # TODO: proper implementation. Now this is just a hack to piggy-back on DataTree repr
+        from dataclasses import fields
+
+        children = {}
+        for f in fields(self):
+            k = f.name
+            v = getattr(self, k)
+            if v is not None:
+                children[k] = xr.DataTree(v)
+        return (
+            xr.DataTree(children=children)
+            ._repr_html_()
+            .replace("xarray.DataTree", f"{self.__class__.__name__}")
+        )
 
 
 @dataclass(kw_only=True)
