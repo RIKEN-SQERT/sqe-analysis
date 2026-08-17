@@ -16,7 +16,7 @@ class BaseAnalysis:
 
     There is only one function that a subclass should implement, `run`. It takes
     in an Xarray DataArray and returns an Xarray Dataset with the following
-    schema: **TOD**
+    schema: **TODO**
 
     Having a class with a single method may seem a bit redundant, but the goal
     is to keep the interface consistent across subclasses (such as
@@ -26,7 +26,7 @@ class BaseAnalysis:
     """
 
     @classmethod
-    def run(cls, data: xr.DataArray, *argd: Any, **kwargs: Any) -> AnalysisResult:
+    def run(cls, data: xr.DataArray, *args: Any, **kwargs: Any) -> AnalysisResult:
         """
         Perform data analysis.
 
