@@ -2,6 +2,7 @@
 Abstract base classes for data analysis
 """
 
+from abc import ABC, abstractmethod
 from collections.abc import Iterable, Mapping
 from typing import Any, cast, override
 
@@ -10,7 +11,7 @@ import xarray as xr
 from sqe_fitting2.result import AnalysisResult, CurvefitAnalysisResult
 
 
-class BaseAnalysis:
+class BaseAnalysis(ABC):
     """
     Base class that defines the API for all kinds of data analysis.
 
@@ -25,6 +26,7 @@ class BaseAnalysis:
     Note `run` is a class method, so it cannot depend on any internal state.
     """
 
+    @abstractmethod
     @classmethod
     def run(cls, data: xr.DataArray, *args: Any, **kwargs: Any) -> AnalysisResult:
         """
