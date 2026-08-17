@@ -26,8 +26,8 @@ class BaseAnalysis(ABC):
     Note `run` is a class method, so it cannot depend on any internal state.
     """
 
-    @abstractmethod
     @classmethod
+    @abstractmethod
     def run(cls, data: xr.DataArray, *args: Any, **kwargs: Any) -> AnalysisResult:
         """
         Perform data analysis.
