@@ -1,5 +1,5 @@
 """
-Testing of the data analysis methods, using the real example data
+Testing of the data analysis base classes
 """
 
 from typing import override
