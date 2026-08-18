@@ -96,10 +96,15 @@ def open_dataset(name: str) -> xr.Dataset:
             f"Name {name!r} not found in example dataset names {ds_names}."
         )
 
-    return xr.open_dataset(
-        (Path(__file__).parent / name).with_suffix(".nc"),
-        engine="h5netcdf",
-    )
+    try:
+        return xr.open_dataset(
+            (Path(__file__).parent / name).with_suffix(".nc"),
+            engine="h5netcdf",
+        )
+    except ImportError as e:
+        raise ImportError(
+            f"Error while opening example data. Ensure that you have h5netcdf and h5py installed ({e})"
+        ) from e
 
 
 def validate_metadata(ds: xr.Dataset) -> None:
