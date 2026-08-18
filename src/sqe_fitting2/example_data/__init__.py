@@ -179,7 +179,7 @@ def validate_metadata(ds: xr.Dataset) -> None:
                 )
 
             # the dict keys should match the data variables in the dataset
-            if not sorted(expected_fit_result.keys()) == sorted(list(ds.keys())):
+            if not sorted(expected_fit_result.keys()) == sorted(ds.keys()):
                 raise ValueError(
                     f"Expected the 'expected_fit_result' metadata dict to have an entry for each data variable. Found data variables {list(ds.keys())} but metadata has {list(expected_fit_result.keys())}."
                 )
