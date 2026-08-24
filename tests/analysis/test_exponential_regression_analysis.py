@@ -12,6 +12,17 @@ from sqe_fitting2.example_data import open_dataset as open_example_dataset
 from sqe_fitting2.xr_util import longest_dim
 
 
+def to_SI(value: float, units: str, dim: str, ds_name: str):
+    if units == "us":
+        return value * 1e6
+    elif units == "ns":
+        return value * 1e9
+    else:
+        raise ValueError(
+            f"unknown units {units!r} on dimension {dim} in dataset {ds_name}"
+        )
+
+
 def test_exponential_regression_analysis_t1():
     ds_names = [ds_name for ds_name in get_dataset_names() if ds_name.startswith("t1-")]
     for ds_name in ds_names:
@@ -49,14 +60,8 @@ def test_exponential_regression_analysis_t1():
                 continue
 
             expected = ds.expected_fit_result[q]["t1"]
-            if units == "us":
-                expected = expected * 1e6
-            elif units == "ns":
-                expected = expected * 1e9
-            else:
-                raise ValueError(
-                    f"unknown units {units} on dimension {dim} in dataset {ds_name}"
-                )
+            expected = to_SI(expected, units=units, dim=dim, ds_name=ds_name)
+
             actual = fit_result.params.decay_constant.sel(qubit=q).item()
             assert actual == pytest.approx(expected, rel=0.21, abs=1.8), (ds_name, q)
 
@@ -64,7 +69,38 @@ def test_exponential_regression_analysis_t1():
 
 
 def test_exponential_regression_analysis_t1_flip():
-    _ds_names = [
+    """
+    Test for ExponentialRegressionAnalysis on t1_flip-* data. No simultaneous
+    fit, so might get different time constants for the different values of
+    pi_pulse_at_end
+    """
+    ds_names = [
         ds_name for ds_name in get_dataset_names() if ds_name.startswith("t1_flip-")
     ]
-    raise pytest.skip()
+    for ds_name in ds_names:
+        ds = open_example_dataset(ds_name)
+        ds = ds.assign_attrs(expected_fit_result=json.loads(ds.expected_fit_result))
+        dim = longest_dim(ds)
+        units = ds[dim].units
+
+        fit_result = ExponentialRegressionAnalysis.run(
+            ds.to_dataarray(dim="qubit"), dim=dim
+        )
+
+        for q in ds.data_vars:
+            if (ds_name, q) in [
+                ("t1_flip-distorted-RX4_59", "Q31"),  # bad fit in original dataset
+                ("t1_flip-no_signal-RX4_59", "Q44"),
+                ("t1_flip-no_signal-RX4_59", "Q47"),
+            ]:
+                continue
+            expected = ds.expected_fit_result[q]["t1"]
+            expected = to_SI(expected, units=units, dim=dim, ds_name=ds_name)
+
+            # just take the mean of the two values for now
+            actual = (
+                fit_result.params.decay_constant.sel(qubit=q)
+                .mean("pi_pulse_at_end")
+                .item()
+            )
+            assert actual == pytest.approx(expected, rel=0.25), (ds_name, q)
