@@ -23,7 +23,8 @@ class BaseAnalysis(ABC):
     is to keep the interface consistent across subclasses (such as
     `CurvefitAnalysis`) which may need more methods.
 
-    Note `run` is a class method, so it cannot depend on any internal state.
+    Note that `run` is a class method, so it cannot depend on any internal
+    state.
     """
 
     @classmethod
