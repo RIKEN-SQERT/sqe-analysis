@@ -104,3 +104,24 @@ def test_exponential_regression_analysis_t1_flip():
                 .item()
             )
             assert actual == pytest.approx(expected, rel=0.25), (ds_name, q)
+
+
+def test_exponential_regression_analysis_t1_flip_failures():
+    for ds_name, qs in {
+        "t1-high_snr_and_no_signal-RX4_QM_30": [
+            "Q40",
+            "Q42",
+            "Q43",
+        ],
+        "t1-high_low_snr_and_no_signal_cut_off-RX4_QM_29": ["Q40", "Q42"],
+        "t1_flip-no_signal-RX4_59": ["Q44", "Q47"],
+    }.items():
+        ds = open_example_dataset(ds_name)
+
+        dim = longest_dim(ds)
+        fit_result = ExponentialRegressionAnalysis.run(
+            ds.to_dataarray(dim="qubit"), dim=dim
+        )
+
+        for q in qs:
+            assert not fit_result.success.sel(qubit=q).all()
