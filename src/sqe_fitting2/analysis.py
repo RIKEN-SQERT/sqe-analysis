@@ -40,19 +40,29 @@ class ExponentialRegressionAnalysis(BaseAnalysis):
     parameters. It can be used as an initial guess for curve fitting.
     """
 
-    # TODO: link & math formatting in docstring
+    # TODO: link & math formatting in docstring (also run() docstring)
     # TODO: example showing that it also works for complex-valued data
 
     @classmethod
     @override
-    def run(cls, data: xr.Dataset, dim: str | None = None) -> CurvefitAnalysisResult:
+    def run(
+        cls, data: xr.Dataset, dim: str | None = None, snr_threshold: float = 5.0
+    ) -> CurvefitAnalysisResult:
         """
         Run the analysis.
 
         Args:
             data: The data to analyze
-            dim: The dimension along which the exponential decay occurs. If
-                None, use the longest dimesnsion of the data.
+            dim: The dimension along which the exponential decay occurs, usually
+                time. If None, use the longest dimesnsion of the data.
+            snr_threshold: Threshold for SNR below which the result is marked as
+                a failure. If `dim` is `t`, the SNR is calculated as
+
+                    SNR = |f(t=0) - f(t=t_max)| / |std(data - f(t))|,
+
+                where f(t) is the model function evaluated with the extracted
+                parameters, and t_max is the maximum value of `dim` in the data.
+                The standard deviation `std` is calculated over `dim`.
 
         Returns:
             A `CurvefitAnalysisResult` (even though we are not doing curve
@@ -125,11 +135,20 @@ class ExponentialRegressionAnalysis(BaseAnalysis):
                 "k": -c / x_range,
             }
         )
+
+        signal = abs(
+            cls.func(0, **fit_params) - cls.func(data[dim].max(), **fit_params)
+        )
+        noise = (data - cls.func(data[dim], **fit_params)).std()
+        snr = signal / noise
+
         return CurvefitAnalysisResult(
             params=fit_params.assign(
                 # TODO: add SNR
                 decay_constant=1 / fit_params.k,
+                SNR=snr,
             ),
+            success=snr > snr_threshold,
             fit_params=fit_params,
         )
 

@@ -104,6 +104,7 @@ def test_exponential_regression_analysis_t1_flip():
                 .item()
             )
             assert actual == pytest.approx(expected, rel=0.25), (ds_name, q)
+            assert fit_result.success.sel(qubit=q).all().item(), (ds_name, q)
 
 
 def test_exponential_regression_analysis_t1_flip_failures():
