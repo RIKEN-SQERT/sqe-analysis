@@ -16,6 +16,8 @@ def test_result_html_repr():
             }
         ),
         success=xr.DataArray(True),
+        analysis_class="none",
+        source_dataset_id="test",
     )
 
     # should not raise an exception
