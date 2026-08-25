@@ -2,27 +2,13 @@
 Tests for TimeOfFlightanalysis
 """
 
-import json
 import warnings
 
 import pytest
+from util import open_test_dataset, to_SI
 
 from sqe_fitting2.analysis import TimeOfFlightAnalysis
 from sqe_fitting2.example_data import get_dataset_names
-from sqe_fitting2.example_data import open_dataset as open_example_dataset
-from sqe_fitting2.xr_util import longest_dim
-
-
-# TODO: change to global fixture
-def to_SI(value: float, units: str, dim: str, ds_name: str):
-    if units == "us":
-        return value * 1e6
-    elif units == "ns":
-        return value * 1e9
-    else:
-        raise ValueError(
-            f"unknown units {units!r} on dimension {dim} in dataset {ds_name}"
-        )
 
 
 def test_time_of_flight_analysis_success():
@@ -33,10 +19,7 @@ def test_time_of_flight_analysis_success():
     ]
 
     for ds_name in ds_names:
-        ds = open_example_dataset(ds_name)
-        ds = ds.assign_attrs(expected_fit_result=json.loads(ds.expected_fit_result))
-        dim = longest_dim(ds)
-        units = ds[dim].units
+        ds, dim, units = open_test_dataset(ds_name)
 
         result = TimeOfFlightAnalysis.run(ds.to_dataarray(dim="qubit"))
         for q in ds.data_vars:

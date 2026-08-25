@@ -2,34 +2,17 @@
 Testing of the data analysis methods, using the real example data
 """
 
-import json
-
 import pytest
+from util import open_test_dataset, to_SI
 
 from sqe_fitting2.analysis import ExponentialRegressionAnalysis
 from sqe_fitting2.example_data import get_dataset_names
-from sqe_fitting2.example_data import open_dataset as open_example_dataset
-from sqe_fitting2.xr_util import longest_dim
-
-
-def to_SI(value: float, units: str, dim: str, ds_name: str):
-    if units == "us":
-        return value * 1e6
-    elif units == "ns":
-        return value * 1e9
-    else:
-        raise ValueError(
-            f"unknown units {units!r} on dimension {dim} in dataset {ds_name}"
-        )
 
 
 def test_exponential_regression_analysis_t1():
     ds_names = [ds_name for ds_name in get_dataset_names() if ds_name.startswith("t1-")]
     for ds_name in ds_names:
-        ds = open_example_dataset(ds_name)
-        ds = ds.assign_attrs(expected_fit_result=json.loads(ds.expected_fit_result))
-        dim = longest_dim(ds)
-        units = ds[dim].units
+        ds, dim, units = open_test_dataset(ds_name)
 
         fit_result = ExponentialRegressionAnalysis.run(
             ds.to_dataarray(dim="qubit"), dim=dim
@@ -78,10 +61,7 @@ def test_exponential_regression_analysis_t1_flip():
         ds_name for ds_name in get_dataset_names() if ds_name.startswith("t1_flip-")
     ]
     for ds_name in ds_names:
-        ds = open_example_dataset(ds_name)
-        ds = ds.assign_attrs(expected_fit_result=json.loads(ds.expected_fit_result))
-        dim = longest_dim(ds)
-        units = ds[dim].units
+        ds, dim, units = open_test_dataset(ds_name)
 
         fit_result = ExponentialRegressionAnalysis.run(
             ds.to_dataarray(dim="qubit"), dim=dim
@@ -117,9 +97,8 @@ def test_exponential_regression_analysis_t1_flip_failures():
         "t1-high_low_snr_and_no_signal_cut_off-RX4_QM_29": ["Q40", "Q42"],
         "t1_flip-no_signal-RX4_59": ["Q44", "Q47"],
     }.items():
-        ds = open_example_dataset(ds_name)
+        ds, dim, _ = open_test_dataset(ds_name)
 
-        dim = longest_dim(ds)
         fit_result = ExponentialRegressionAnalysis.run(
             ds.to_dataarray(dim="qubit"), dim=dim
         )
