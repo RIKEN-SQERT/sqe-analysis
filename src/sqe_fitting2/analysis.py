@@ -38,6 +38,7 @@ class TimeOfFlightAnalysis(BaseAnalysis):
         cls,
         data: xr.DataArray,
         dim: Dims | None = None,
+        snr_threshold: float = 2.0,
         smoothing: int = 5,
     ) -> AnalysisResult:
         # TODO: how should I split project_complex vs smoothing in preprocess??
@@ -59,9 +60,10 @@ class TimeOfFlightAnalysis(BaseAnalysis):
             params=xr.Dataset(
                 dict(  # noqa: C408
                     step_location=step_locations,
-                    snr=snr,
+                    SNR=snr,
                 ),
             ),
+            success=snr > snr_threshold,
             intermediate_results=xr.Dataset(
                 dict(  # noqa: C408
                     data_projected=proj,
