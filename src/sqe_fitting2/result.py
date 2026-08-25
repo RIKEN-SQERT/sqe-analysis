@@ -16,6 +16,9 @@ class AnalysisResult:
             have one data variable for each parameter.
         params_std: Estimates of the standard deviations of the extracted
             parameters, if available. May contain only a subset of `params`.
+        success: A DataArray containing booleans indicating whether the analysis
+            was a success. The coordinates should be the same as those of
+            `params`.
         intermediate_results: Additional analysis results that are needed for
             visualization, but not direct quantities of interest of the analysis
         debug_results: Additional analysis results that are useful for
@@ -29,6 +32,7 @@ class AnalysisResult:
 
     params: xr.Dataset
     params_std: xr.Dataset | None = None
+    success: xr.DataArray
     intermediate_results: xr.Dataset | None = None
     debug_results: xr.Dataset | None = None
 
@@ -50,6 +54,9 @@ class AnalysisResult:
             k = f.name
             v = getattr(self, k)
             if v is not None:
+                # success is a DataArray, convert it to dataset
+                if isinstance(v, xr.DataArray):
+                    v = xr.Dataset({f.name: v})
                 children[k] = xr.DataTree(v)
         return (
             xr.DataTree(children=children)
