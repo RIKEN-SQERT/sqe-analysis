@@ -1,5 +1,6 @@
 import warnings
 from dataclasses import dataclass
+from datetime import datetime
 
 import xarray as xr
 
@@ -30,6 +31,8 @@ class AnalysisResult:
         debug_results: Additional analysis results that are useful for
             troubleshooting the analysis, but not necessary for visualization.
             These may not be saved when ??saving the result as netcdf??.
+        created_at: ISO 8601 timestamp of when this result was created. Will be
+            filled in automatically upon initialization.
     """
 
     # TODO: validate that params_std is a subset of params (and the coordinates match)
@@ -42,6 +45,7 @@ class AnalysisResult:
     source_dataset_id: str
     intermediate_results: xr.Dataset | None = None
     debug_results: xr.Dataset | None = None
+    created_at: str = ""
 
     def to_netcdf(self, path: ...):
         raise NotImplementedError
@@ -71,6 +75,7 @@ class AnalysisResult:
         # as of xarray 2026.7.0, there is no assign_attrs method on DataTree so just assign manually
         dt.attrs["analysis_class"] = self.analysis_class
         dt.attrs["source_dataset_id"] = self.source_dataset_id
+        dt.attrs["created_at"] = self.created_at
         return dt._repr_html_().replace("xarray.DataTree", f"{self.__class__.__name__}")
 
     def __post_init__(self):
@@ -79,6 +84,8 @@ class AnalysisResult:
             self.analysis_class = (
                 f"{self.analysis_class.__module__}.{self.analysis_class.__qualname__}"
             )
+
+        self.created_at = datetime.now().astimezone().isoformat()
 
 
 @dataclass(kw_only=True)
