@@ -1,0 +1,1 @@
+Scripts for performing one-off tasks, such as cleaning up or updating the schema of the example data. Note that some scripts contain [jupytext](https://jupytext.org/) metadata so that they can be opened as Jupyter notebooks.
