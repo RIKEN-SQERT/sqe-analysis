@@ -19,6 +19,11 @@ class AnalysisResult:
         success: A DataArray containing booleans indicating whether the analysis
             was a success. The coordinates should be the same as those of
             `params`.
+        analysis_class: Name of the data analysis class that produced this
+            result. Can also be the class itself, but will be converted to a
+            string.
+        source_dataset_id: Unique identifier of the data set that this analysis
+            result was derived from.
         intermediate_results: Additional analysis results that are needed for
             visualization, but not direct quantities of interest of the analysis
         debug_results: Additional analysis results that are useful for
@@ -28,11 +33,12 @@ class AnalysisResult:
 
     # TODO: validate that params_std is a subset of params (and the coordinates match)
     # TODO: also verify that the coordinates of success match with params
-    # TODO: source description (dataset id, analysis class that produced this result)
 
     params: xr.Dataset
     params_std: xr.Dataset | None = None
     success: xr.DataArray
+    analysis_class: str | type
+    source_dataset_id: str
     intermediate_results: xr.Dataset | None = None
     debug_results: xr.Dataset | None = None
 
@@ -57,12 +63,21 @@ class AnalysisResult:
                 # success is a DataArray, convert it to dataset
                 if isinstance(v, xr.DataArray):
                     v = xr.Dataset({f.name: v})
+                elif isinstance(v, str):
+                    continue
                 children[k] = xr.DataTree(v)
-        return (
-            xr.DataTree(children=children)
-            ._repr_html_()
-            .replace("xarray.DataTree", f"{self.__class__.__name__}")
-        )
+        dt = xr.DataTree(children=children)
+        # as of xarray 2026.7.0, there is no assign_attrs method on DataTree so just assign manually
+        dt.attrs["analysis_class"] = self.analysis_class
+        dt.attrs["source_dataset_id"] = self.source_dataset_id
+        return dt._repr_html_().replace("xarray.DataTree", f"{self.__class__.__name__}")
+
+    def __post_init__(self):
+        # ensure that analysis_class is a string
+        if isinstance(self.analysis_class, type):
+            self.analysis_class = (
+                f"{self.analysis_class.__module__}.{self.analysis_class.__qualname__}"
+            )
 
 
 @dataclass(kw_only=True)
