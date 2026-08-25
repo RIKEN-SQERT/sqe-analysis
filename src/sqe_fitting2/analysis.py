@@ -69,4 +69,9 @@ class TimeOfFlightAnalysis(BaseAnalysis):
                     data_projected=proj,
                 )
             ),
+            debug_results=xr.Dataset(
+                dict(  # noqa: C408
+                    smoothed_diff=diff,
+                )
+            ),
         )
