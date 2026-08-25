@@ -5,10 +5,33 @@ Tests for TimeOfFlightanalysis
 import warnings
 
 import pytest
+import xarray as xr
 from util import open_test_dataset, to_SI
 
 from sqe_fitting2.analysis import TimeOfFlightAnalysis
 from sqe_fitting2.example_data import get_dataset_names
+
+
+def test_time_of_flight_analysis_basic():
+    data = xr.DataArray(
+        [
+            # small offsets so we don't get infinite SNR
+            -0.01,
+            0.01,
+            -0.01,
+            0.01,
+            1 - 0.01,
+            1 + 0.01,
+            1 - 0.01,
+            1 + 0.01,
+        ],
+        coords=[("x", list(range(8)))],
+        attrs={"dataset_id": "test"},
+    )
+    result = TimeOfFlightAnalysis.run(data)
+    assert result.params.SNR.item() > 100
+    assert result.params.step_location.item() == 3
+    assert result.success.item()
 
 
 def test_time_of_flight_analysis_success():
