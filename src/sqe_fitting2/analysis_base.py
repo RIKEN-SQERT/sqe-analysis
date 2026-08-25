@@ -132,6 +132,14 @@ class CurvefitAnalysis(BaseAnalysis):
         if curvefit_kwargs is None:
             curvefit_kwargs = {}
 
+        # some default values for curvefit_kwargs
+        curvefit_kwargs = dict(
+            {
+                "errors": "ignore",
+            },
+            **curvefit_kwargs,
+        )
+
         preprocessed_data = cls.preprocess(data, coords=coords)
         if preprocessed_data is not None:
             data_to_fit = preprocessed_data
@@ -177,11 +185,19 @@ class CurvefitAnalysis(BaseAnalysis):
         if extra_params is not None:
             result_params = result_params.merge(extra_params)
 
+        # If errors='ignore' in curvefit_kwargs, the coefficients and
+        # covariances for the coordinates where the fitting failed will be NaN.
+        # TODO: add option for success based on chisquare threshold or similar?
+        # TODO: add possibility to manually define success based on fit
+        # parameters, e.g. if qubit frequency is negative or similar
+        success = ~fit_result.curvefit_coefficients.isel(param=0).isnull()
+
         return CurvefitAnalysisResult(
             # TODO: consider possibility of excluding some of the fit parameters
             # from params (e.g. with a `exlcude_params` attribute).
             params=result_params,
             fit_params=fit_params,
+            success=success,
             # TODO: convert curvefit covariances to std (or store full covariance matrix???)
             # params_std=fit_result.curvefit_covariances.to_dataset("param"),
             intermediate_results=intermediate_results,
