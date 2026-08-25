@@ -71,7 +71,9 @@ def test_curvefit_analysis_basic():
     """Trivial curvefit analysis test."""
 
     res = LineFit.run(
-        xr.DataArray([-1, 1, 3], coords=[("x", [0, 1, 2])]),
+        xr.DataArray(
+            [-1, 1, 3], coords=[("x", [0, 1, 2])], attrs={"dataset_id": "test"}
+        ),
         coords="x",
     )
 
@@ -91,7 +93,9 @@ def test_curvefit_analysis_with_guess_method():
     """The guess method should provide initial values used by the fit."""
 
     res = LineFitWithGuess.run(
-        xr.DataArray([1, 3, 5], coords=[("x", [0, 1, 2])]),
+        xr.DataArray(
+            [1, 3, 5], coords=[("x", [0, 1, 2])], attrs={"dataset_id": "test"}
+        ),
         coords="x",
     )
 
@@ -108,7 +112,9 @@ def test_curvefit_analysis_with_guess_arg():
 
     # Method returns a=0, b=0; arg overrides a=1.0 only.
     res = LineFitWithGuess.run(
-        xr.DataArray([1, 3, 5], coords=[("x", [0, 1, 2])]),
+        xr.DataArray(
+            [1, 3, 5], coords=[("x", [0, 1, 2])], attrs={"dataset_id": "test"}
+        ),
         coords="x",
         guess={"a": 1.0},
     )
@@ -125,7 +131,9 @@ def test_curvefit_analysis_guess_arg_without_method():
     """A guess argument works even when the class has no custom guess method."""
 
     res = LineFit.run(
-        xr.DataArray([1, 3, 5], coords=[("x", [0, 1, 2])]),
+        xr.DataArray(
+            [1, 3, 5], coords=[("x", [0, 1, 2])], attrs={"dataset_id": "test"}
+        ),
         coords="x",
         guess={"a": 1.0, "b": 0.0},
     )
@@ -145,7 +153,9 @@ def test_curvefit_analysis_guess_arg_without_method_partial():
     """
 
     res = LineFit.run(
-        xr.DataArray([1, 3, 5], coords=[("x", [0, 1, 2])]),
+        xr.DataArray(
+            [1, 3, 5], coords=[("x", [0, 1, 2])], attrs={"dataset_id": "test"}
+        ),
         coords="x",
         guess={"a": 1.0},
     )
@@ -166,7 +176,12 @@ def test_curvefit_analysis_guess_arg_without_method_partial():
 def test_curvefit_analysis_preprocessing():
     """Preprocessing should modify the data before fitting."""
     # Raw data is y = 2x + 1 + 100. Preprocess subtracts 100.
-    data = xr.DataArray([101, 103, 105], coords=[("x", [0, 1, 2])], dims=["x"])
+    data = xr.DataArray(
+        [101, 103, 105],
+        coords=[("x", [0, 1, 2])],
+        dims=["x"],
+        attrs={"dataset_id": "test"},
+    )
 
     res = LineFitWithPreprocess.run(data, coords="x")
 
@@ -187,7 +202,9 @@ def test_curvefit_analysis_preprocessing():
 
 def test_curvefit_analysis_derived_quantities():
     res = LineFitWithDerivedQuantity.run(
-        xr.DataArray([1, 3, 5], coords=[("x", [0, 1, 2])]),
+        xr.DataArray(
+            [1, 3, 5], coords=[("x", [0, 1, 2])], attrs={"dataset_id": "test"}
+        ),
         coords="x",
         guess={"a": 1.0},
     )
@@ -216,6 +233,7 @@ def test_curvefit_analysis_multidimensional():
             [5.0, 4.0, 3.0, 2.0, 1.0],
         ],
         coords=[("trace", ["a", "b", "c"]), ("x", [0, 1, 2, 3, 4])],
+        attrs={"dataset_id": "test"},
     )
 
     res = LineFit.run(data, coords="x")
@@ -235,6 +253,7 @@ def test_curvefit_analysis_multidimensional_guess():
             [-1.0, 1.0, 3.0, 5.0, 7.0],
         ],
         coords=[("trace", ["a", "b"]), ("x", [0, 1, 2, 3, 4])],
+        attrs={"dataset_id": "test"},
     )
 
     # Scalar guess broadcast to all traces
@@ -257,7 +276,7 @@ def test_curvefit_analysis_quadratic():
     y = 2 * x**2 + 3 * x + 1
 
     res = QuadraticFit.run(
-        xr.DataArray(y, coords=[("x", x)], dims=["x"]),
+        xr.DataArray(y, coords=[("x", x)], dims=["x"], attrs={"dataset_id": "test"}),
         coords="x",
     )
 

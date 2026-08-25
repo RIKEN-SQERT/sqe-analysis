@@ -26,7 +26,10 @@ def open_test_dataset(
     ds_name: str, dim: str | None = None
 ) -> tuple[xr.Dataset, str, str]:
     ds = open_example_dataset(ds_name)
-    ds = ds.assign_attrs(expected_fit_result=json.loads(ds.expected_fit_result))
+    ds = ds.assign_attrs(
+        expected_fit_result=json.loads(ds.expected_fit_result),
+        dataset_id=ds.source,
+    )
     if dim is None:
         dim = longest_dim(ds)
     units = ds[dim].units
