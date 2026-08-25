@@ -3,10 +3,29 @@ Testing of the data analysis methods, using the real example data
 """
 
 import pytest
+import xarray as xr
 from util import open_test_dataset, to_SI
 
 from sqe_fitting2.analysis import ExponentialRegressionAnalysis
 from sqe_fitting2.example_data import get_dataset_names
+
+
+def test_exponential_regression_analysis_basic():
+    data = (
+        xr.DataArray(
+            [1, 0.368, 0.135],
+            coords=[("x", [0, 1, 2])],
+            attrs={"dataset_id": "test"},
+        )
+        * 2
+        + 3
+    )
+    result = ExponentialRegressionAnalysis.run(data)
+    assert result.params.k.item() == pytest.approx(1, rel=0.1)
+    assert result.params.a.item() == pytest.approx(2, rel=0.1)
+    assert result.params.b.item() == pytest.approx(3, rel=0.1)
+    assert result.source_dataset_id == "test"
+    assert ExponentialRegressionAnalysis.__name__ in result.analysis_class
 
 
 def test_exponential_regression_analysis_t1():
