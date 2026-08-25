@@ -27,7 +27,7 @@ class AnalysisResult:
     """
 
     # TODO: validate that params_std is a subset of params (and the coordinates match)
-    # TODO: success attribute (also verify that the coordinates match with params)
+    # TODO: also verify that the coordinates of success match with params
     # TODO: source description (dataset id, analysis class that produced this result)
 
     params: xr.Dataset
