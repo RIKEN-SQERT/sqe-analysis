@@ -1,3 +1,4 @@
+import warnings
 from dataclasses import dataclass
 
 import xarray as xr
@@ -106,3 +107,20 @@ class CurvefitAnalysisResult(AnalysisResult):
     # TODO: fit_params_std for the uncerainties of the fit parameters
 
     fit_params_guess: xr.Dataset | None = None
+
+
+def get_source_dataset_id(data: xr.DataArray) -> str:
+    """
+    Helper function to check that the data has 'dataset_id' in the attributes.
+    Issues a warning if the dataset ID is missing.
+    """
+    k = "dataset_id"
+    default = "unknown"
+    if k not in data.attrs:
+        warnings.warn(
+            f"{k!r} not found in dataset attributes, defaulting to {default!r}. The dataset ID should be defined.",
+            stacklevel=3,
+        )
+        return default
+    else:
+        return data.attrs[k]

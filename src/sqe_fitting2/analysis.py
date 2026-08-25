@@ -12,7 +12,11 @@ from numpy.typing import ArrayLike
 from xarray.core.types import Dims
 
 from sqe_fitting2.analysis_base import BaseAnalysis
-from sqe_fitting2.result import AnalysisResult, CurvefitAnalysisResult
+from sqe_fitting2.result import (
+    AnalysisResult,
+    CurvefitAnalysisResult,
+    get_source_dataset_id,
+)
 from sqe_fitting2.signal_processing import project_complex
 from sqe_fitting2.xr_util import longest_dim
 
@@ -148,6 +152,8 @@ class ExponentialRegressionAnalysis(BaseAnalysis):
                 decay_constant=1 / fit_params.k,
                 SNR=snr,
             ),
+            analysis_class=cls,
+            source_dataset_id=get_source_dataset_id(data),
             success=snr > snr_threshold,
             fit_params=fit_params,
         )
@@ -211,6 +217,8 @@ class TimeOfFlightAnalysis(BaseAnalysis):
                 ),
             ),
             success=snr > snr_threshold,
+            analysis_class=cls,
+            source_dataset_id=get_source_dataset_id(data),
             intermediate_results=xr.Dataset(
                 dict(  # noqa: C408
                     data_projected=proj,
