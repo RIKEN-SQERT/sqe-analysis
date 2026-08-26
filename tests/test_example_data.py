@@ -1,6 +1,6 @@
 import pytest
 
-from sqe_fitting2.example_data import (
+from sqe_analysis.example_data import (
     get_dataset_names,
     open_dataset,
     validate_metadata,
