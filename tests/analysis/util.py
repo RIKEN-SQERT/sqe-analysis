@@ -7,7 +7,7 @@ import json
 import xarray as xr
 
 from sqe_analysis.example_data import open_dataset as open_example_dataset
-from sqe_analysis.xr_util import longest_dim
+from sqe_analysis.xarray_util import longest_dim
 
 
 def to_SI(value: float, units: str, dim: str, ds_name: str) -> float:

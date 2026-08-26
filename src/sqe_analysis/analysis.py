@@ -18,7 +18,7 @@ from sqe_analysis.result import (
     get_source_dataset_id,
 )
 from sqe_analysis.signal_processing import project_complex
-from sqe_analysis.xr_util import longest_dim
+from sqe_analysis.xarray_util import longest_dim
 
 
 class ExponentialRegressionAnalysis(BaseAnalysis):
