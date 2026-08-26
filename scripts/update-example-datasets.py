@@ -11,11 +11,11 @@ from pathlib import Path
 import xarray as xr
 import hvplot.xarray
 
-from sqe_fitting2.example_data import get_dataset_names, open_dataset
+from sqe_analysis.example_data import get_dataset_names, open_dataset
 
 
 def save_updated(ds: xr.Dataset, ds_name: str):
-    ds_path = Path("../src/sqe_fitting2/example_data") / Path(
+    ds_path = Path("../src/sqe_analysis/example_data") / Path(
         ds_name + "-update"
     ).with_suffix(".nc")
 
@@ -42,7 +42,7 @@ for ds_name in ds_names:
         print(f"skipping {ds_name}, already has units {ds.time.units}")
 
     # add suffix, can't overwrite files in .to_netcdf()
-    ds_path = Path("../src/sqe_fitting2/example_data") / Path(
+    ds_path = Path("../src/sqe_analysis/example_data") / Path(
         ds_name + "-update"
     ).with_suffix(".nc")
 
@@ -59,7 +59,7 @@ ds_names = [n for n in get_dataset_names() if n.startswith("t1") and "QM" in n]
 ds_names
 
 # %%
-from sqe_fitting2.signal_processing import project_complex
+from sqe_analysis.signal_processing import project_complex
 
 # %%
 for ds_name in ds_names:

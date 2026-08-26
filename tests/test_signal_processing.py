@@ -5,7 +5,7 @@ from xarray.testing import (  # pyright: ignore[reportUnknownVariableType]
     assert_equal,
 )
 
-from sqe_fitting2.signal_processing import project_complex
+from sqe_analysis.signal_processing import project_complex
 
 
 def test_project_complex_dataarray_zero():

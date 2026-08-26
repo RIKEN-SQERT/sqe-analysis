@@ -1969,7 +1969,7 @@ dependencies = [
     { name = "hvplot" },
     { name = "jupyter" },
     { name = "jupytext" },
-    { name = "sqe-fitting2" },
+    { name = "sqe-analysis" },
 ]
 
 [package.metadata]
@@ -1979,7 +1979,7 @@ requires-dist = [
     { name = "hvplot", specifier = ">=0.12.2" },
     { name = "jupyter", specifier = ">=1.1.1" },
     { name = "jupytext", specifier = ">=1.19.5" },
-    { name = "sqe-fitting2", editable = "../" },
+    { name = "sqe-analysis", editable = "../" },
 ]
 
 [[package]]
@@ -2010,7 +2010,7 @@ wheels = [
 ]
 
 [[package]]
-name = "sqe-fitting2"
+name = "sqe-analysis"
 version = "0.1.0"
 source = { editable = "../" }
 dependencies = [

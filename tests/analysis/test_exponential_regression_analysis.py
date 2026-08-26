@@ -6,8 +6,8 @@ import pytest
 import xarray as xr
 from util import open_test_dataset, to_SI
 
-from sqe_fitting2.analysis import ExponentialRegressionAnalysis
-from sqe_fitting2.example_data import get_dataset_names
+from sqe_analysis.analysis import ExponentialRegressionAnalysis
+from sqe_analysis.example_data import get_dataset_names
 
 
 def test_exponential_regression_analysis_basic():

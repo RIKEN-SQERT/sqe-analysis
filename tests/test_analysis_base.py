@@ -9,8 +9,8 @@ import pytest
 import xarray as xr
 from xarray.testing import assert_allclose
 
-from sqe_fitting2.analysis_base import CurvefitAnalysis
-from sqe_fitting2.result import CurvefitAnalysisResult
+from sqe_analysis.analysis_base import CurvefitAnalysis
+from sqe_analysis.result import CurvefitAnalysisResult
 
 # ---------------------------------------------------------------------------
 # CurvefitAnalysis

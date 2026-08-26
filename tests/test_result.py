@@ -4,7 +4,7 @@ Testing of the analysis result classes
 
 import xarray as xr
 
-from sqe_fitting2.result import AnalysisResult
+from sqe_analysis.result import AnalysisResult
 
 
 def test_result_html_repr():

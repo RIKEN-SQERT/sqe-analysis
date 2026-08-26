@@ -8,7 +8,7 @@ from typing import Any, cast, override
 
 import xarray as xr
 
-from sqe_fitting2.result import (
+from sqe_analysis.result import (
     AnalysisResult,
     CurvefitAnalysisResult,
     get_source_dataset_id,

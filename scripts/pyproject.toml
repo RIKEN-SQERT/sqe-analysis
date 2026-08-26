@@ -3,7 +3,7 @@ name = "scripts"
 version = "0.1.0"
 requires-python = ">=3.13"
 dependencies = [
-    "sqe_fitting2",
+    "sqe-analysis",
     "jupytext>=1.19.5",
     "hvplot>=0.12.2", # used for plotting in update-example-datasets
     "jupyter>=1.1.1",
@@ -12,4 +12,4 @@ dependencies = [
 ]
 
 [tool.uv.sources]
-sqe_fitting2 = { path = "../", editable = true }
+sqe-analysis = { path = "../", editable = true }

@@ -12,7 +12,7 @@ import numpy as np
 import xarray as xr
 from xarray.core.types import Dims
 
-from sqe_fitting2.xr_util import longest_dim
+from sqe_analysis.xr_util import longest_dim
 
 
 @overload

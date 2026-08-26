@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 import xarray as xr
 
-from sqe_fitting2.xr_util import longest_dim, sorted_dims
+from sqe_analysis.xr_util import longest_dim, sorted_dims
 
 
 def test_sorted_dims_single_dimension():

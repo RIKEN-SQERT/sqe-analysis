@@ -11,14 +11,14 @@ import xarray as xr
 from numpy.typing import ArrayLike
 from xarray.core.types import Dims
 
-from sqe_fitting2.analysis_base import BaseAnalysis
-from sqe_fitting2.result import (
+from sqe_analysis.analysis_base import BaseAnalysis
+from sqe_analysis.result import (
     AnalysisResult,
     CurvefitAnalysisResult,
     get_source_dataset_id,
 )
-from sqe_fitting2.signal_processing import project_complex
-from sqe_fitting2.xr_util import longest_dim
+from sqe_analysis.signal_processing import project_complex
+from sqe_analysis.xr_util import longest_dim
 
 
 class ExponentialRegressionAnalysis(BaseAnalysis):
@@ -179,7 +179,7 @@ class TimeOfFlightAnalysis(BaseAnalysis):
 
     Example:
 
-        >>> from sqe_fitting2.example_data import open_dataset
+        >>> from sqe_analysis.example_data import open_dataset
         >>> y = open_dataset("")
 
         Quick visualization of the result:
