@@ -1,5 +1,5 @@
 """
-Example datasets bundled with the library
+Example datasets bundled with sqe-analysis
 
 This module contains example data that can (and should) be used in documentation
 and unit tests. The data should come from real experiments, so that the fitting
