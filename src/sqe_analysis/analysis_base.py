@@ -47,8 +47,12 @@ class BaseAnalysis(ABC):
         )
 
 
-# The type of initial guess of xr.DataArray.curvefit
 CurvefitGuessType = Mapping[str, float | xr.DataArray]
+"""
+The type of initial guess of xr.DataArray.curvefit, mapping from string to float
+or DataArray
+"""
+
 
 
 class CurvefitAnalysis(BaseAnalysis):
