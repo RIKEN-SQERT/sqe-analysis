@@ -5,4 +5,5 @@
 
 .. automodule:: sqe_analysis.analysis
   :members:
+  :show-inheritance:
 ```
