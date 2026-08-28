@@ -9,6 +9,8 @@
   
   sqe_analysis.analysis
   sqe_analysis.analysis_base
+  sqe_analysis.result
+  sqe_analysis.xarray_util
 ```
 
 <!--
@@ -27,4 +29,6 @@
 
 analysis
 analysis_base
+result
+xarray_util
 ```
