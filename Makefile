@@ -8,4 +8,4 @@ docs-clean:
 	rm -rf docs/api/_autosummary
 
 docs-live:
-	uv run --group docs --with sphinx-autobuild sphinx-autobuild docs docs/_build/html
+	uv run --group docs --with sphinx-autobuild sphinx-autobuild --watch src docs docs/_build/html
