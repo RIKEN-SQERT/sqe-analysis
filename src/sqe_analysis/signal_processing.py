@@ -1,5 +1,5 @@
 """
-Functions for digital signal processing with xarray
+Functions for digital signal processing with Xarray
 
 These should complement functions available in the base xarray library and in
 other external libraries such as xr-scipy or xrft. We should prefer those

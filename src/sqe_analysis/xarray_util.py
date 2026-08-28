@@ -1,5 +1,5 @@
 """
-Small utility functions for dealing with xarray arrays
+Small utility functions for dealing with Xarray arrays
 """
 
 from typing import cast
