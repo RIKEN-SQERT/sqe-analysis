@@ -10,7 +10,9 @@ Here are the modules included in the library.
   sqe_analysis.analysis
   sqe_analysis.analysis_base
   sqe_analysis.result
+  sqe_analysis.signal_processing
   sqe_analysis.xarray_util
+  sqe_analysis.example_data
 ```
 
 ```{toctree}
@@ -20,5 +22,7 @@ Here are the modules included in the library.
 analysis
 analysis_base
 result
+signal_processing
 xarray_util
+example_data
 ```
