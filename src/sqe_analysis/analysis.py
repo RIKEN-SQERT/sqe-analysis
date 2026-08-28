@@ -22,29 +22,31 @@ from sqe_analysis.xarray_util import longest_dim
 
 
 class ExponentialRegressionAnalysis(BaseAnalysis):
-    """
+    r"""
     Analysis for exponentially decaying data with non-zero baseline
 
     Fits the model
 
-        a * exp(-k * x) + b
+    .. math::
 
-    to the data. Note that this is not a subclass of CurvefitAnalysis. The
+        a \cdot \exp(-k \cdot x) + b
+
+    to the data. Note that this is not a subclass of :py:class:`~sqe_analysis.analysis_base.CurvefitAnalysis`. The
     paramateres are directly extracted from the data without any curve fitting
     or guessing, based on the method described by J. Jacquelin, see
-    https://stackoverflow.com/a/39436209,
-    https://math.stackexchange.com/a/1337641,
-    https://www.scribd.com/document/23155389/Theoretical-Impedance-of-Capacitive-Electrodes,
-    https://www.scribd.com/doc/14674814/Regressions-et-equations-integrales (in
-    French). Note that the parameter names are different from those used by
-    Jacquelin.
+
+    - https://stackoverflow.com/a/39436209
+    - https://math.stackexchange.com/a/1337641
+    - `Theoretical Impedances of Capacitive Electrodes <https://www.scribd.com/document/23155389/Theoretical-Impedance-of-Capacitive-Electrodes>`__
+    - `Régressions et Équations Intégrales (in French) <https://www.scribd.com/doc/14674814/Regressions-et-equations-integrales>`__
+
+    Note that the parameter names are different from those used by Jacquelin.
 
     This method has the advantage that it is extremely fast and requires no initial
     guess. The downside is that it does not provide error bounds for the
     parameters. It can be used as an initial guess for curve fitting.
     """
 
-    # TODO: link & math formatting in docstring (also run() docstring)
     # TODO: example showing that it also works for complex-valued data
 
     @classmethod
@@ -52,27 +54,29 @@ class ExponentialRegressionAnalysis(BaseAnalysis):
     def run(
         cls, data: xr.Dataset, dim: str | None = None, snr_threshold: float = 5.0
     ) -> CurvefitAnalysisResult:
-        """
+        r"""
         Run the analysis.
 
         Args:
             data: The data to analyze
             dim: The dimension along which the exponential decay occurs, usually
-                time. If None, use the longest dimesnsion of the data.
+                time. If ``None``, use the longest dimesnsion of the data.
             snr_threshold: Threshold for SNR below which the result is marked as
-                a failure. If `dim` is `t`, the SNR is calculated as
+                a failure. If ``dim`` is :math:`t`, the SNR is calculated as
 
-                    SNR = |f(t=0) - f(t=t_max)| / |std(data - f(t))|,
+                .. math::
 
-                where f(t) is the model function evaluated with the extracted
-                parameters, and t_max is the maximum value of `dim` in the data.
-                The standard deviation `std` is calculated over `dim`.
+                    \mathrm{SNR} = |f(t=0) - f(t=t_{\mathrm{max}})| / |\mathrm{std}(\mathrm{data} - f(t))|,
+
+                where :math:`f(t)` is the model function evaluated with the extracted
+                parameters, and :math:`t_{\mathrm{max}}` is the maximum value of ``dim`` in the data.
+                The standard deviation :math:`\mathrm{std}` is calculated over ``dim``.
 
         Returns:
-            A `CurvefitAnalysisResult` (even though we are not doing curve
-            fitting), with `fit_params` corresponding to the exponential
-            parameters. `params` contains an additional parameter for the
-            decay constant, which is the inverse of the scale factor `k` in
+            A :py:class:`~sqe_analysis.result.CurvefitAnalysisResult` (even though we are not doing curve
+            fitting), with ``fit_params`` corresponding to the exponential
+            parameters. ``params`` contains an additional parameter for the
+            decay constant, which is the inverse of the scale factor :math:`k` in
             the exponent.
         """
         # Comparsion of naming convention of Jacquelin:
@@ -162,6 +166,8 @@ class ExponentialRegressionAnalysis(BaseAnalysis):
     def func(cls, x: ArrayLike, k, a, b) -> ArrayLike:
         """
         Exponential model function.
+
+        This can be used to conveniently evaluate the analysis result.
         """
         return a * np.exp(-k * x) + b
 
