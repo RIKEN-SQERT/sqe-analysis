@@ -1,5 +1,8 @@
 """
 Abstract base classes for data analysis
+
+For concrete classes implementing the analysis, see the
+:py:mod:`~sqe_analysis.analysis` module.
 """
 
 from abc import ABC, abstractmethod
