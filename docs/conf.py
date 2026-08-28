@@ -8,6 +8,10 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
+
+    # small extension that adds :autosummary: option to .. automodule::, so that we get summary tables similar to '.. autosummary::'
+    "autodocsumm",
+
     "myst_parser",
 ]
 

@@ -25,4 +25,10 @@ dev = [
     "pytest-xdist>=3.8.0",
     "ruff>=0.16.1",
 ]
-docs = ["sphinx>=8", "myst-parser", "sphinx-autodoc-typehints", "furo"]
+docs = [
+    "sphinx>=8",
+    "myst-parser",
+    "sphinx-autodoc-typehints",
+    "furo",
+    "autodocsumm>=0.2.15",
+]

@@ -4,4 +4,6 @@
 .. automodule:: sqe_analysis.analysis
   :members:
   :show-inheritance:
+  :autosummary:
+  :autosummary-no-nesting:
 ```

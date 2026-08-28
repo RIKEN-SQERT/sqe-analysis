@@ -32,6 +32,18 @@ wheels = [
 ]
 
 [[package]]
+name = "autodocsumm"
+version = "0.2.15"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "sphinx" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/46/b7/f28dea12fae1d1ad1e706f5cf6d16e8d735f305ebee86fd9390e099bd27d/autodocsumm-0.2.15.tar.gz", hash = "sha256:eaf431e7a5a39e41a215311173c8b95e83859059df1ccf3b79c64bf3d5582b3c", size = 46674, upload-time = "2026-03-26T20:44:07.074Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ca/3d/4357a0f685c0a2ae7132ac91905bec565e64f9ba63b079f7ec5da46e3597/autodocsumm-0.2.15-py3-none-any.whl", hash = "sha256:dbe6fabcaeae4540748ea9b3443eb76c2692e063d44f004f67c424610a5aca9a", size = 14852, upload-time = "2026-03-26T20:44:05.273Z" },
+]
+
+[[package]]
 name = "babel"
 version = "2.18.0"
 source = { registry = "https://pypi.org/simple" }
@@ -873,6 +885,7 @@ dev = [
     { name = "ruff" },
 ]
 docs = [
+    { name = "autodocsumm" },
     { name = "furo" },
     { name = "myst-parser" },
     { name = "sphinx" },
@@ -894,6 +907,7 @@ dev = [
     { name = "ruff", specifier = ">=0.16.1" },
 ]
 docs = [
+    { name = "autodocsumm", specifier = ">=0.2.15" },
     { name = "furo" },
     { name = "myst-parser" },
     { name = "sphinx", specifier = ">=8" },
