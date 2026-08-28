@@ -32,7 +32,7 @@ class ExponentialRegressionAnalysis(BaseAnalysis):
         a \cdot \exp(-k \cdot x) + b
 
     to the data. Note that this is not a subclass of :py:class:`~sqe_analysis.analysis_base.CurvefitAnalysis`. The
-    paramateres are directly extracted from the data without any curve fitting
+    parameters are directly extracted from the data without any curve fitting
     or guessing, based on the method described by J. Jacquelin, see
 
     - https://stackoverflow.com/a/39436209
