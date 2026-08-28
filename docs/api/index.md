@@ -1,6 +1,6 @@
 # API Reference
 
-Here are the modules included in the library.
+These are the modules included in the library.
 
 <!-- https://myst-parser.readthedocs.io/en/latest/syntax/code_and_apis.html#syntax-apis-sphinx-autodoc -->
 <!-- TODO: check autosummary args (toctree, include-members __init__ (?), etc) -->
