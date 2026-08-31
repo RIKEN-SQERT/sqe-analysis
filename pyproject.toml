@@ -31,4 +31,6 @@ docs = [
     "sphinx-autodoc-typehints",
     "furo",
     "autodocsumm>=0.2.15",
+    "myst-nb>=1.4.0",
+    "hvplot>=0.12.2",
 ]

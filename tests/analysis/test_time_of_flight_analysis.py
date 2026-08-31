@@ -32,6 +32,7 @@ def test_time_of_flight_analysis_basic():
     assert result.params.SNR.item() > 100
     assert result.params.step_location.item() == 3
     assert result.success.item()
+    assert result.success.coords == result.params.coords
 
 
 def test_time_of_flight_analysis_success():

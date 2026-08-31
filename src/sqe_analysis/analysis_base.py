@@ -30,7 +30,7 @@ class BaseAnalysis(ABC):
     is to keep the interface consistent across subclasses (such as
     `CurvefitAnalysis`) which may need more methods.
 
-    Note that `run` is a class method, so it cannot depend on any internal
+    Note that ``run`` is a class method, so it cannot depend on any internal
     state.
     """
 
@@ -57,23 +57,23 @@ or DataArray
 """
 
 
-
 class CurvefitAnalysis(BaseAnalysis):
     """
     Special case of analysis where the analysis is performed by fitting a curve.
 
-    A subclass should implement the model function in `func`. The `run` function
-    has a default implementation that performs fitting to `func` using
-    `xr.DataArray.curvefit`. Additionally, a subclass may implement a `guess`
-    function that produces an initial guess, which will be called by `run`.
+    A subclass should implement the model function by overriding
+    :py:meth:`func`. The :py:meth:`run` method has a default implementation that
+    performs fitting to ``func`` using ``xr.DataArray.curvefit``. Additionally,
+    a subclass may implement a :py:meth:`guess` function that produces an
+    initial guess, which will be called by ``run``.
 
     This class should only be used for the cases where the analysis truly
     consists of a single curve fit. If you need to perform multiple curve fits
     (for example, fitting an oscillation frequency as a function of some
     parameter, and then fitting a curve to the extracted oscillation
-    frequencies), you should use `BaseAnalysis` instead, and use
-    `CurvefitAnalysis` subclasses in the `run` implementation. See the
-    ???documentation??? for an example.
+    frequencies), you should use :py:class:`BaseAnalysis` instead, and use
+    ``CurvefitAnalysis`` subclasses in the ``run`` implementation. See *TODO* for
+    an example.
 
     Note that all methods are class methods, so they cannot depend on any
     internal state.
@@ -81,7 +81,7 @@ class CurvefitAnalysis(BaseAnalysis):
 
     # TODO: document preprocessing...
 
-    # TODO: doc link
+    # TODO: doc link to xarray curvefit
 
     @classmethod
     def func(cls, *independent_vars: Any, **kwargs: Any):
@@ -100,11 +100,12 @@ class CurvefitAnalysis(BaseAnalysis):
 
         Note that this function is called after preprocessing.
 
-        The return value should have the same format as the `p0` parameter of
-        `xr.DataArray.curvefit`, i.e. a dictionary that maps parameter names to
-        scalar values or data arrays (if the initial guess varies with a
+        The return value should have the same format as the ``p0`` parameter of
+        ``xr.DataArray.curvefit``, i.e. a dictionary that maps parameter names
+        to scalar values or data arrays (if the initial guess varies with a
         coordinate of multidimensional data).
         """
+        # TODO: link to xarray docs
         return None
 
     @classmethod
@@ -127,12 +128,12 @@ class CurvefitAnalysis(BaseAnalysis):
         curvefit_kwargs: dict[str, Any] | None = None,
     ) -> CurvefitAnalysisResult:
         """
-        Analysis based on curve fitting.
+        Analyze data by performing curve fitting.
 
         Args:
             curvefit_kwargs: Keyword arguments passed to `xr.DataArray.curvefit`.
             guess: Parameter values for initial guess. These will override any
-                parameters returned by `cls.guess`.
+                parameters returned by :py:meth:`guess`.
         """
         # TODO: automatically determine coords? longest dim? and separate subclass for 2D fit with 2 longest coords?
         # TODO: bounds
@@ -201,7 +202,7 @@ class CurvefitAnalysis(BaseAnalysis):
         # TODO: add option for success based on chisquare threshold or similar?
         # TODO: add possibility to manually define success based on fit
         # parameters, e.g. if qubit frequency is negative or similar
-        success = ~fit_result.curvefit_coefficients.isel(param=0).isnull()
+        success = ~fit_result.curvefit_coefficients.isel(param=0, drop=True).isnull()
 
         return CurvefitAnalysisResult(
             # TODO: consider possibility of excluding some of the fit parameters
