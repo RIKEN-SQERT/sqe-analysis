@@ -16,6 +16,10 @@ extensions = [
     "myst_nb",  # to enable {code-cell} - also activates myst_parser
 ]
 
+suppress_warnings = [
+    "mystnb.unknown_mime_type"  # "WARNING: skipping unknown output mime type: application/vnd.holoviews_load.v0+json"
+]
+
 # TODO: try different themes, good options are furo and pydata-sphinx-theme
 #html_theme = "furo"
 
