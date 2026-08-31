@@ -57,7 +57,6 @@ or DataArray
 """
 
 
-
 class CurvefitAnalysis(BaseAnalysis):
     """
     Special case of analysis where the analysis is performed by fitting a curve.
