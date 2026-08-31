@@ -202,7 +202,7 @@ class CurvefitAnalysis(BaseAnalysis):
         # TODO: add option for success based on chisquare threshold or similar?
         # TODO: add possibility to manually define success based on fit
         # parameters, e.g. if qubit frequency is negative or similar
-        success = ~fit_result.curvefit_coefficients.isel(param=0).isnull()
+        success = ~fit_result.curvefit_coefficients.isel(param=0, drop=True).isnull()
 
         return CurvefitAnalysisResult(
             # TODO: consider possibility of excluding some of the fit parameters
