@@ -129,7 +129,7 @@ class CurvefitAnalysis(BaseAnalysis):
         curvefit_kwargs: dict[str, Any] | None = None,
     ) -> CurvefitAnalysisResult:
         """
-        Analysis based on curve fitting.
+        Analyze data by performing curve fitting.
 
         Args:
             curvefit_kwargs: Keyword arguments passed to `xr.DataArray.curvefit`.
