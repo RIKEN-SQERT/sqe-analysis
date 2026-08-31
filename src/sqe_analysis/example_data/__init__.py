@@ -3,56 +3,68 @@ Example datasets bundled with sqe-analysis
 
 This module contains example data that can (and should) be used in documentation
 and unit tests. The data should come from real experiments, so that the fitting
-algorithms can be evaluated and tested against a ??realistic scenario??.
+algorithms can be evaluated and tested against realistic conditions.
 
 The data should be in NetCDF 4 format. The axes should be labeled and have
 units. If a dataset has multiple traces (for example, form the simultaneous
 measurement of multiple qubits), each trace should be a separate variable in the
 dataset. Each dataset should have the following NetCDF metadata:
 
-- title: string
-    - a short, one-sentence human-readable description of the data. For example:
+- ``title``: string
+    - A short, one-sentence human-readable description of the data. For example:
         - "Resonator spectroscopy"
         - "Resonator spectroscopy vs drive power"
-- description: string
-    - a more detailed description of the data, in a few sentences. An
-    experienced researcher should be able to imagine what the data looks like
-    based on this description. Examples:
-        - "Complex-valued S21 transmission of a superconducting resonator capacitively coupled to a transmon qubit. Measured with a VNA."
-        - "Complex-valued readout resonator transmission when a qubit is prepared in the excited state as a function of idle time for T1 measurement"
-- quality_notes: string
+- ``description``: string
+    - A more detailed description of the data, in a few sentences. An
+      experienced researcher should be able to imagine what the data looks like
+      based on this description. Examples:
+      - "Complex-valued S21 transmission of a superconducting resonator capacitively coupled to a transmon qubit. Measured with a VNA."
+      - "Complex-valued readout resonator transmission when a qubit is prepared in the excited state as a function of idle time for T1 measurement"
+- ``quality_notes``: string
     - Human-readable description of the expected fit result and data
-    quality, such as "Clean resonance at 6.123 GHz", "Should contain four
-    resonances but only contains three", "Very faint signal at 4.321 GHz", or
-    "No signal at all, just noise"
-- source: string
+      quality, such as "Clean resonance at 6.123 GHz", "Should contain four
+      resonances but only contains three", "Very faint signal at 4.321 GHz", or
+      "No signal at all, just noise"
+- ``source``: string
     - A description of where the data came from. For example:
         - a DOI link to a zenodo dataset: "https://doi.org/10.5281/zenodo.12345678"
         - an unambiguous reference to a measurement dataset: "RIKEN, SQERT, fridge X, cooldown N, chip ID Y, dataset ID Z"
-- source_type: string
+- ``source_type``: string
     - "experimental" or "simulation"
-- expected_fit_result: JSON dictionary (optional)
+- ``expected_fit_result``: JSON dictionary (optional)
     - A string encoding a JSON dictionary of machine-readable expected fit
-    values that can be used in unit tests. The values should be in SI base
-    units. For example, `{"resonance_frequency": 6.123e9, "linewidth": 5e6}`.
-    For datasets with multiple qubits, it should be a nested dictionary with
-    top-level keys for the qubits:
-    `{"Q00": {"resonance_frequency": ..., "linewidth": ...}, "Q01": {...}, ...}`
-- license: string
+      values that can be used in unit tests. The values should be in SI base
+      units. For example, ``{"resonance_frequency": 6.123e9, "linewidth": 5e6}``.
+      For datasets with multiple qubits, it should be a nested dictionary with
+      top-level keys for the qubits:
+
+        .. code-block::
+
+            {
+                "Q00": {
+                    "resonance_frequency": ...,
+                    "linewidth": ...
+                },
+                "Q01": {...},
+                ...
+            }
+
+- ``license``: string
     - A license identifier such as "CC BY-SA 4.0"
 
 The fields in the metadata are required unless marked as optional.
 
 The file names should match the following pattern:
-`[title]-[qualifier]-[label].nc`, with underscores instead of spaces. The title
+``[title]-[qualifier]-[label].nc``, with underscores instead of spaces. The title
 should be similar to the title in the metadata (with underscores). The qualifier
 should be similar to the "notes" metadata field, such as 'clean_resonance' or
 'low_snr'. The label should be an abbreviated version of the "source" metadata
 field, in order to distinguish multiple datasets with the same title and
 qualifier. Hyphens should not be used apart from separating the three parts. For
 example:
-- `resonator_spectroscopy-good_snr-RIKEN_XLD4_XLD4_64QFY2023_10_20260729_008.nc`
-- `resonator_spectroscopy_vs_power-no_signal-riken_XLD4_64QFY2023_10_20260729_009.nc`
+
+- ``resonator_spectroscopy-good_snr-RX4_008.nc``
+- ``resonator_spectroscopy_vs_power-no_signal-RX4_009.nc``
 """
 
 import json
@@ -77,7 +89,8 @@ import xarray as xr
 
 def get_dataset_names() -> list[str]:
     """
-    Get a list of the names of the example datasets that can be passed to `open_dataset`.
+    Get a list of the names of the example datasets that can be passed to
+    :py:func:`open_dataset`.
     """
     # All datasets are assumed to be NetCDF.
     return sorted(p.with_suffix("").name for p in Path(__file__).parent.glob("*.nc"))
@@ -86,7 +99,7 @@ def get_dataset_names() -> list[str]:
 def open_dataset(name: str) -> xr.Dataset:
     """
     Open an example dataset by name. The list of available names can be found
-    with `get_dataset_names`.
+    with :py:func:`get_dataset_names`.
     """
     # All datasets are assumed to be NetCDF. Use h5netcdf for compatibility with
     # complex-valued data.
