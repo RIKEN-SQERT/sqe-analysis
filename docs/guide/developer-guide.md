@@ -1,5 +1,14 @@
 # Developer guide
 
+## Basic development flow
+
+- Run tests: `uv run pytest` in the repository root
+- Checks:
+    - `uv run ruff check`
+    - `uv run ruff format`
+
+    These can be run on every commit using e.g. [prek](https://prek.j178.dev/), but it is not strictly required.
+
 ## Documentation
 
 There are two kinds of documentation:
