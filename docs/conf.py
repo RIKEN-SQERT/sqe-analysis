@@ -12,7 +12,7 @@ extensions = [
     # small extension that adds :autosummary: option to .. automodule::, so that we get summary tables similar to '.. autosummary::'
     "autodocsumm",
 
-    "myst_parser",
+    "myst_nb",  # to enable {code-cell} - also activates myst_parser
 ]
 
 # TODO: try different themes, good options are furo and pydata-sphinx-theme
