@@ -82,6 +82,7 @@ def test_curvefit_analysis_basic():
     assert res.params.b.item() == -1.0
     assert res.fit_params.a.item() == 2.0
     assert res.fit_params.b.item() == -1.0
+    assert res.success.coords == res.params.coords
 
 
 # ---------------------------------------------------------------------------
