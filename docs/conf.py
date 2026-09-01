@@ -4,6 +4,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 project = "sqe-analysis"
+author = "The sqe-analysis contributors"
+copyright = "%Y, The sqe-analysis contributors"
 
 extensions = [
     "sphinx.ext.napoleon",

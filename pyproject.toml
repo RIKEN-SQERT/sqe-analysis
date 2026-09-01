@@ -3,6 +3,8 @@ name = "sqe-analysis"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
+license = " EUPL-1.2"
+license-files = ["LICENSE"]
 authors = [
     { name = "András Márton Gunyhó", email = "andras.gunyho@riken.jp" }
 ]

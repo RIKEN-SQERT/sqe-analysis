@@ -62,7 +62,7 @@ fit_eval = ExponentialRegressionAnalysis.func(
 
 To get started, see the [user guide](guide/index), or if you want to look up the documentation for a specific function, see the [API reference](api/index).
 
-sqe-analysis was initially developed at the [Superconducting Quantum Electronics Research Team](https://www.riken.jp/en/research/labs/rqc/superconduct_qtm_electron/index.html) at RIKEN.
+sqe-analysis is free and open source software available under the EUPL license. See [the repository](github.com/RIKEN-SQERT/sqe-analysis/) for more information. sqe-analysis was initially developed at the [Superconducting Quantum Electronics Research Team](https://www.riken.jp/en/research/labs/rqc/superconduct_qtm_electron/index.html) at RIKEN.
 
 ```{toctree}
 :maxdepth: 2
