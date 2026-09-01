@@ -2,7 +2,7 @@
 
 sqe-analysis is a small, well-crafted, and practical data analysis toolbox for your superconducting quantum circuit experiments.
 
-For additional information, see the documentation. <!-- TODO: link to rendered docs page -->
+For additional information, see [the documentation](https://sqe-analysis.readthedocs.io/).
 
 
 ## License
