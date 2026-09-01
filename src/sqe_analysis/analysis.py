@@ -1,5 +1,5 @@
 """
-The main API of the library.
+The main API of the library
 
 The analysis classes are ordered alphabetically, for lack of better organization.
 """
