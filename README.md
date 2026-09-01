@@ -1,4 +1,4 @@
-# sqe-analysis - Library for superconducting quantum circuit experiments
+# sqe-analysis - Data analysis library for superconducting quantum circuit experiments
 
 sqe-analysis is a small, well-crafted, and practical data analysis toolbox for your superconducting quantum circuit experiments.
 
