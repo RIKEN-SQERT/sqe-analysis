@@ -10,12 +10,12 @@ source your/virtual/environment/bin/activate
 uv pip install "sqe-analysis @ https://github.com/RIKEN-SQERT/sqe-analysis.git"
 ```
 
-To load the example data, install the following additional dependencies:
+To load the example data, you need to install the following additional dependencies:
 ```shell
 uv pip install h5netcdf h5py
 ```
 
-The Python version support of sqe-analysis follows the [Scientific Python Ecosystem support schedule](https://scientific-python.org/specs/spec-0000/).
+The Python version support of sqe-analysis follows the [Scientific Python ecosystem support schedule](https://scientific-python.org/specs/spec-0000/).
 
 ## Running a simple analysis
 
