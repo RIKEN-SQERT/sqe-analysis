@@ -7,7 +7,7 @@ kernelspec:
 # Creating a custom analysis class
 
 This page explains how to create a custom analysis class.
-If you think others might find your analysis class useful, please consider making a pull request incorporating your addition!
+If you think others might find your analysis class useful, please consider making a pull request [on GitHub](https://github.com/RIKEN-SQERT/sqe-analysis/) incorporating your addition!
 <!-- TODO: link to contributor guide (including contribution to example data) -->
 
 Note that curve fitting is a kind of data analysis, but not all data analysis is curve fitting.
