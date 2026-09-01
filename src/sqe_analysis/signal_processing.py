@@ -1,9 +1,10 @@
 """
 Functions for digital signal processing with Xarray
 
-These should complement functions available in the base xarray library and in
-other external libraries such as xr-scipy or xrft. We should prefer those
-whenever the functionality we need is available.
+These should complement functions available in the base Xarray library and in
+other external libraries such as `xr-scipy <https://xr-scipy.readthedocs.io>`_
+or `xrft <https://xrft.readthedocs.io/>`_. Those libraries should be preferred
+whenever the desired functionality is available.
 """
 
 from typing import cast, overload
