@@ -1871,8 +1871,8 @@ docs = [
 
 [package.metadata]
 requires-dist = [
-    { name = "scipy", specifier = ">=1.18.0" },
-    { name = "xarray", specifier = ">=2026.7.0" },
+    { name = "scipy", specifier = ">=1.15.0" },
+    { name = "xarray", specifier = ">=2024.10.0" },
 ]
 
 [package.metadata.requires-dev]

@@ -10,8 +10,8 @@ authors = [
 ]
 requires-python = ">=3.13"
 dependencies = [
-    "scipy>=1.18.0",
-    "xarray>=2026.7.0",
+    "scipy>=1.15.0",
+    "xarray>=2024.10.0",
 ]
 
 [build-system]
