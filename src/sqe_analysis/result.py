@@ -16,40 +16,59 @@ class AnalysisResult:
 
     All attributes are Xarray Datasets so that their values can be
     multidimensional arrays.
-
-    Attributes:
-        params: The qantities of interest of the analysis. The Dataset should
-            have one data variable for each parameter.
-        params_std: Estimates of the standard deviations of the extracted
-            parameters, if available. May contain only a subset of `params`.
-        success: A DataArray containing booleans indicating whether the analysis
-            was a success. The coordinates should be the same as those of
-            `params`.
-        analysis_class: Name of the data analysis class that produced this
-            result. Can also be the class itself, but will be converted to a
-            string.
-        source_dataset_id: Unique identifier of the data set that this analysis
-            result was derived from.
-        intermediate_results: Additional analysis results that are needed for
-            visualization, but not direct quantities of interest of the analysis
-        debug_results: Additional analysis results that are useful for
-            troubleshooting the analysis, but not necessary for visualization.
-            These may not be saved when ??saving the result as netcdf??.
-        created_at: ISO 8601 timestamp of when this result was created. Will be
-            filled in automatically upon initialization.
     """
 
     # TODO: validate that params_std is a subset of params (and the coordinates match)
     # TODO: also verify that the coordinates of success match with params
 
     params: xr.Dataset
+    """
+    The qantities of interest of the analysis. The Dataset should have one data
+    variable for each parameter.
+    """
+
     params_std: xr.Dataset | None = None
+    """
+    Estimates of the standard deviations of the extracted
+    parameters, if available. May contain only a subset of `params`.
+    """
+
     success: xr.DataArray
+    """
+    A DataArray containing booleans indicating whether the analysis was a
+    success. The coordinates should be the same as those of `params`.
+    """
+
     analysis_class: str | type
+    """
+    Name of the data analysis class that produced this result. Can also be the
+    class itself, but will be converted to a string.
+    """
+
     source_dataset_id: str
+    """
+    Unique identifier of the data set that this analysis result was derived
+    from.
+    """
+
     intermediate_results: xr.Dataset | None = None
+    """
+    Additional analysis results that are needed for visualization, but not
+    direct quantities of interest of the analysis
+    """
+
     debug_results: xr.Dataset | None = None
+    """
+    Additional analysis results that are useful for troubleshooting the
+    analysis, but not necessary for visualization. These may not be saved when
+    ??saving the result as netcdf??.
+    """
+
     created_at: str = ""
+    """
+    ISO 8601 timestamp of when this result was created. Will be filled in
+    automatically upon initialization.
+    """
 
     def to_netcdf(self, path: ...):
         raise NotImplementedError
@@ -96,17 +115,6 @@ class AnalysisResult:
 class CurvefitAnalysisResult(AnalysisResult):
     """
     Specialized analysis result for curve fitting-based analysis.
-
-    Attributes:
-        fit_params: Dataset containing the parameters of the model function that
-            minimize the error between the model prediction and the data. These
-            should always exactly match the arguments of the model function, so
-            that they can be used to evaluate it.
-        fit_params_guess: The initial guess used for the fitting, either
-            calculated using the `guess` method or explicitly passed as
-            arguments. May not contain all parameters of the model function, so
-            it might not be possible to directly evaluate it with the guess
-            values.
     """
 
     # TODO: validate that the parameters that are present both in params and
@@ -114,10 +122,22 @@ class CurvefitAnalysisResult(AnalysisResult):
     # TODO: example that shows how to evaluate the model function with `fit_params`
 
     fit_params: xr.Dataset
+    """
+    Dataset containing the parameters of the model function that minimize the
+    error between the model prediction and the data. These should always exactly
+    match the arguments of the model function, so that they can be used to
+    evaluate it.
+    """
 
     # TODO: fit_params_std for the uncerainties of the fit parameters
 
     fit_params_guess: xr.Dataset | None = None
+    """
+    The initial guess used for the fitting, either calculated using the `guess`
+    method or explicitly passed as arguments. May not contain all parameters of
+    the model function, so it might not be possible to directly evaluate it with
+    the guess values.
+    """
 
 
 def get_source_dataset_id(data: xr.DataArray) -> str:
