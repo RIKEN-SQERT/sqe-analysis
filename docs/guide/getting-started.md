@@ -15,7 +15,7 @@ To load the example data, you need to install the following additional dependenc
 uv pip install h5netcdf h5py
 ```
 
-The Python version support of sqe-analysis follows the [Scientific Python ecosystem support schedule](https://scientific-python.org/specs/spec-0000/).
+The Python version supported by sqe-analysis follows the [Scientific Python ecosystem support schedule](https://scientific-python.org/specs/spec-0000/).
 
 ## Running a simple analysis
 

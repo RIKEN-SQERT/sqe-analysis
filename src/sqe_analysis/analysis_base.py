@@ -22,13 +22,16 @@ class BaseAnalysis(ABC):
     """
     Base class that defines the API for all kinds of data analysis.
 
-    There is only one function that a subclass should implement, `run`. It takes
-    in an Xarray DataArray and returns an Xarray Dataset with the following
-    schema: **TODO**
+    There is only one function that a subclass should implement, :py:meth:`run`.
+    It takes in an Xarray DataArray and returns an
+    :py:class:`~sqe_analysis.result.AnalysisResult` object. See the
+    documentation of that class for further information. See also :doc:`the
+    tutorial for creating a custom data analysis class
+    </guide/creating-analyses>`.
 
     Having a class with a single method may seem a bit redundant, but the goal
     is to keep the interface consistent across subclasses (such as
-    `CurvefitAnalysis`) which may need more methods.
+    :py:class:`CurvefitAnalysis`) which may need more methods.
 
     Note that ``run`` is a class method, so it cannot depend on any internal
     state.
@@ -39,8 +42,6 @@ class BaseAnalysis(ABC):
     def run(cls, data: xr.DataArray, *args: Any, **kwargs: Any) -> AnalysisResult:
         """
         Perform data analysis.
-
-        Should return a dataset with a specified schema, see the class documentation.
 
         The keyword arguments should contain additional parameters needed for
         the analysis, such as the dimension(s) over which to do curve fitting.

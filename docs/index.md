@@ -44,7 +44,8 @@ result
 ```
 
 Visualize the data and the evaluated fit.
-Visualization should be handled by an external library, in this case we use [hvPlot](https://hvplot.holoviz.org), which is not a required dependency of sqe-analysis.
+Visualization should be handled by an external library.
+In this case, we use [hvPlot](https://hvplot.holoviz.org), which is not a required dependency of sqe-analysis.
 ```{code-cell} python
 import hvplot.xarray
 

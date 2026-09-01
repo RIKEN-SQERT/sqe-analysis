@@ -28,18 +28,19 @@ import hvplot.xarray
 
 x = np.linspace(0, 10, 51)
 peak_data = xr.DataArray(
-      np.exp(-(x - 4) ** 2 / 0.5),
-      coords=[("x", x)],
-      # the data array must have a name
-      # for plotting to work with hvplot
-      name="peak data",
+    np.exp(-(x - 4) ** 2 / 0.5),
+    coords=[("x", x)],
+    # the data array must have a name for hvplot to work
+    name="peak data",
 )
 
 peak_data.hvplot(x="x")
 ```
 
-At the most basic level, an analysis class should inherit {py:class}`~sqe_analysis.analysis_base.BaseAnalysis` and implement the {py:meth}`~sqe_analysis.analysis_base.BaseAnalysis.run` method.
-The method should return an {py:class}`~sqe_analysis.result.AnalysisResult` object, which has a few required attributes.
+At the most basic level, an analysis class should inherit {py:class}`~sqe_analysis.analysis_base.BaseAnalysis` and implement the {py:meth}`~sqe_analysis.analysis_base.BaseAnalysis.run` method, which returns an {py:class}`~sqe_analysis.result.AnalysisResult` object.
+These are the two core classes provided by the library.
+The ``AnalysisResult`` class has a few required parameters and some optional ones containing additional information.
+Here we will only use the required parameters.
 ```{code-cell} python
 from sqe_analysis.analysis_base import BaseAnalysis
 from sqe_analysis.result import AnalysisResult, get_source_dataset_id
@@ -81,7 +82,7 @@ class SimplePeakLocationAnalysis(BaseAnalysis):
         )
 ```
 
-Note that the `run` method is a [class method](https://docs.python.org/3.11/library/functions.html#classmethod).
+Note that `run` is a [class method](https://docs.python.org/3/library/functions.html#classmethod), so the first argument is `cls` instead of `self`.
 This means that it is called like `SimplePeakLocationAnalysis.run(...)` instead of `SimplePeakLocationAnalysis().run(...)`.
 This way, the analysis function cannot use intermediate variables like `self.something = ...`.
 While this may seem limiting at first, this is advantageous because it makes testing and debugging easier. <!-- TODO: link to page discussing functional programming style -->
@@ -103,26 +104,32 @@ peak_result.params
 ```{code-cell} python
 peak_result.params.peak_location
 ```
+The peak location is an array with a single element.
+This way, the analysis behaves consistently for multidimensional data, which we will discuss below.
 
 Let's visualize the result.
 ```{code-cell} python
+# use .item() to convert the single-element array to a scalar
+peak = peak_result.params.peak_location.item()
+
 (
     peak_data.hvplot(x="x")
     *
-    hv.VLine(x=peak_result.params.peak_location.item()).opts(color="k")
+    hv.VLine(x=peak).opts(color="k")
 )
 ```
-That is essentially it!
+That is essentially all you need for a basic analysis class!
 See the {py:class}`~sqe_analysis.result.AnalysisResult` class documentation for additional information that can be included in the analysis result.
 
 
 
-Note that in a proper analysis class, the `dim` argument should default to `None` and use the {py:func}`~sqe_analysis.xarray_util.longest_dim` function to choose the longest dimension by default.
+Note that in a properly written analysis class, the convention is to set `dim` to `None` by default, and use the {py:func}`~sqe_analysis.xarray_util.longest_dim` function to choose the longest dimension if `dim` is `None`.
 
 
 ### Multidimensional analysis
 
-Since we're using Xarray, the analysis will automatically work for multidimensional data, as long as we use only Xarray-compatible functions in the `run()` method, such as [`idxmax`](https://docs.xarray.dev/en/stable/generated/xarray.DataArray.idxmax.html) used above.
+Since we're using Xarray, the analysis we wrote above will automatically work for multidimensional data. 
+We just have to make sure to use only Xarray-compatible functions in the `run()` method, such as [`idxmax`](https://docs.xarray.dev/en/stable/generated/xarray.DataArray.idxmax.html) used above.
 
 ```{code-cell} python
 peak_locs  = np.array([3, 5, 7])
@@ -135,11 +142,15 @@ peak_data_multi = xr.DataArray(
 peak_data_multi.hvplot(x="x", by="c")
 ```
 
+Running the analysis is identical to the 1D case:
 ```{code-cell} python
-peak_result_multi = SimplePeakLocationAnalysis.run(peak_data_multi, dim="x")
+peak_result_multi = SimplePeakLocationAnalysis.run(
+    peak_data_multi,
+    dim="x",
+)
 peak_result_multi
 ```
-Note how the call to `run()` is identical to the previous case, but the resulting `peak_location` is now an array with `c` as a coordinate.
+Note how the resulting `peak_location` is now an array with `c` as a coordinate.
 
 
 ```{code-cell} python
@@ -201,7 +212,8 @@ fit_eval = LineFit.func(
 )
 ```
 
-In this example, `params` and `fit_params` are the same, but we will see below that they can be different, if additional derived quantities are added to `params`.
+In this example, `params` and `fit_params` are the same.
+We will see below that they can be different if additional derived quantities are added to `params`.
 
 ### Adding derived quantities to the fit result
 
