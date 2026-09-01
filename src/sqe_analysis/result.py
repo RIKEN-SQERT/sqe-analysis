@@ -1,3 +1,7 @@
+"""
+Classes for storing analysis results
+"""
+
 import warnings
 from dataclasses import dataclass
 from datetime import datetime
