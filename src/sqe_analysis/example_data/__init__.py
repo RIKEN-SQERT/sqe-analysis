@@ -18,6 +18,7 @@ dataset. Each dataset should have the following NetCDF metadata:
     - A more detailed description of the data, in a few sentences. An
       experienced researcher should be able to imagine what the data looks like
       based on this description. Examples:
+
         - "Complex-valued S21 transmission of a superconducting resonator capacitively coupled to a transmon qubit. Measured with a VNA."
         - "Complex-valued readout resonator transmission when a qubit is prepared in the excited state as a function of idle time for T1 measurement"
 - ``quality_notes``: string
