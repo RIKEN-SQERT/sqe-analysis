@@ -130,10 +130,15 @@ class CurvefitAnalysis(BaseAnalysis):
         """
         Analyze data by performing curve fitting.
 
+        This is a thin wrapper around the `Xarray curvefit <https://docs.xarray.dev/en/stable/generated/xarray.DataArray.curvefit.html>`__
+        function.
+
         Args:
-            curvefit_kwargs: Keyword arguments passed to `xr.DataArray.curvefit`.
+            data: Data to analyze
+            coords: Coordinate(s) of the data along which to perform curve fitting.
             guess: Parameter values for initial guess. These will override any
                 parameters returned by :py:meth:`guess`.
+            curvefit_kwargs: Keyword arguments passed to `xr.DataArray.curvefit`.
         """
         # TODO: automatically determine coords? longest dim? and separate subclass for 2D fit with 2 longest coords?
         # TODO: bounds
