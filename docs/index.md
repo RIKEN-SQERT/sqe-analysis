@@ -23,6 +23,13 @@ These are the main principles of sqe-analysis:
 To give you a flavor of sqe-analysis, here is an example T1 fit, using one of the built-in example datasets.
 
 ```{code-cell} python
+:tags: [remove-cell]
+# set some display options, not shown in rendered page
+import xarray as xr
+xr.set_options(display_expand_data=False)
+```
+
+```{code-cell} python
 from sqe_analysis.example_data import open_dataset as open_example_dataset
 from sqe_analysis.analysis import ExponentialRegressionAnalysis
 from sqe_analysis.signal_processing import project_complex
