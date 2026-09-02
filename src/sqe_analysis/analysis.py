@@ -11,7 +11,12 @@ import xarray as xr
 from numpy.typing import ArrayLike
 from xarray.core.types import Dims
 
-from sqe_analysis.analysis_base import BaseAnalysis
+from sqe_analysis.analysis_base import (
+    BaseAnalysis,
+    CurvefitAnalysis,
+    CurvefitCoordsType,
+    CurvefitGuessType,
+)
 from sqe_analysis.result import (
     AnalysisResult,
     CurvefitAnalysisResult,
@@ -170,6 +175,49 @@ class ExponentialRegressionAnalysis(BaseAnalysis):
         This can be used to conveniently evaluate the analysis result.
         """
         return a * np.exp(-k * x) + b
+
+
+class GaussianAnalysis(CurvefitAnalysis):
+    r"""
+    Curve fit for Gaussian-shaped data
+
+    Fits the model
+
+    .. math::
+
+        a \cdot \exp\left(-\frac{(x-c)^2}{2\sigma^2}\right) + b
+
+    to the data.
+
+    The data may be complex-valued, it will be projected to the real axis using
+    :py:func:`~sqe_analysis.signal_processing.project_complex` in :py:meth:`preprocess`.
+    """
+
+    @classmethod
+    @override
+    def func(cls, x: ArrayLike, c, a, b, sigma) -> ArrayLike:
+        return a * np.exp(-((x - c) ** 2) / (2 * sigma**2)) + b
+
+    @classmethod
+    @override
+    def guess(cls, preprocessed_data: xr.DataArray, coords: CurvefitCoordsType) -> CurvefitGuessType:
+        return None
+        raise NotImplementedError
+
+    @classmethod
+    @override
+    def preprocess(cls, data: xr.DataArray, coords: str) -> xr.DataArray:
+        proj = project_complex(data, dim=coords)
+        return proj
+
+    @classmethod
+    @override
+    def extra_params(cls, fit_params: xr.Dataset):
+        return xr.Dataset(
+            {
+                "FWHM": 2 * fit_params.sigma * np.sqrt(2 * np.log(2)),
+            }
+        )
 
 
 class TimeOfFlightAnalysis(BaseAnalysis):
