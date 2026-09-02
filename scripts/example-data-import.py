@@ -13,9 +13,9 @@
 #     name: python3
 # ---
 
-# ## Example data cleanup & annotation
+# ## Example data import, cleanup & annotation
 #
-# This notebook shows an example of importing example data from an external experiment framework and annotating it with the appropriate metadata. It can be used as a template for performing this kind of cleanup.
+# This notebook shows an example of importing example data from an external experiment framework and annotating it with the appropriate metadata. It can be used as a template for performing data import and cleanup. This python script can be converted to a Jupyter notebook using Jupytext.
 
 # +
 from pathlib import Path
