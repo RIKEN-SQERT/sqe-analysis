@@ -9,6 +9,7 @@ dependencies = [
     "jupyter>=1.1.1",
     "h5netcdf>=1.8.1",
     "h5py>=3.16.0",
+    "matplotlib>=3.11.1",
 ]
 
 [tool.uv.sources]

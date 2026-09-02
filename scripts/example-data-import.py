@@ -16,6 +16,15 @@
 # ## Example data import, cleanup & annotation
 #
 # This notebook shows an example of importing example data from an external experiment framework and annotating it with the appropriate metadata. It can be used as a template for performing data import and cleanup. This python script can be converted to a Jupyter notebook using Jupytext.
+#
+# Doing this kind of annotation is tedious and difficult to automate. This is the kind of task that is well suited for LLMs. Here is an example prompt for a coding agent to use this script as a template. Place your example data in the `exported_data/` folder and change the file name in the prompt. Please always carefully check the output.
+#
+# <!-- TODO: this should probably be an agent skill instead... -->
+# ```
+# Take a look at the @scripts/example-data-import.py script. Create a copy of it in the folder @scripts/exported_data/ and modify it to instead use the data set @scripts/exported_data/**[YOUR-DATASET]**. Check the metadata, and create a plot of the data using matplotlib and look at it, and update the description and metadata of the example dataset accordingly. See @src/sqe_analysis/example_data/__init__.py for information on the metadata format. Look at the descriptions and quality notes of the existing example datasets in @src/sqe_analysis/example_data/. Propose a file name for the newly created example data set but don't save it yet, I will check the output before saving it.
+#
+# Use `uv run <modified script>` inside the scripts folder to run your script. Remember to update the relative file paths in the modified script.
+# ```
 
 # +
 from pathlib import Path
