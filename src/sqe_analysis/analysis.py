@@ -200,9 +200,53 @@ class GaussianAnalysis(CurvefitAnalysis):
 
     @classmethod
     @override
-    def guess(cls, preprocessed_data: xr.DataArray, coords: CurvefitCoordsType) -> CurvefitGuessType:
-        return None
-        raise NotImplementedError
+    def guess(
+        cls,
+        preprocessed_data: xr.DataArray,
+        coords: CurvefitCoordsType,
+    ) -> CurvefitGuessType:
+        """
+        Crude initial guess for Gaussian parameters
+        """
+        # TODO: consider factoring out in to "rough peak analysis" or similar
+
+        y = preprocessed_data
+        x = y[coords]
+        mi = y.min(coords)
+        ma = y.max(coords)
+
+        # Use the maximum of the median absolute deviation as an estimate for
+        # the center location. This is not very robust if the baseline is not
+        # clearly visible. An alternative approach in this case would be to take
+        # the integral of the signal, normalize it, and look for the point where
+        # it crosses 0.5. But that method is not robust when there is a large
+        # baseline visible but only part of the bell curve.
+        center_loc = abs(y - y.median(coords)).idxmax(coords)
+
+        # drop_vars so that the coordinate doesn't linger around
+        center_val = y.sel({coords: center_loc}).drop_vars(coords)
+
+        # if the estimated peak is close to the minimum, flip the sign
+        sign = xr.where(abs(center_val - mi) < abs(center_val - ma), -1, 1)
+
+        amplitude = (ma - mi) * sign
+        baseline = xr.where(sign == -1, ma, mi)
+
+        y_norm = (y - baseline) / amplitude
+
+        above_half_max = x.where(y_norm > 0.5)
+        above_half_max_range = above_half_max.max(coords) - above_half_max.min(coords)
+        sigma = 0.5 * above_half_max_range
+        # fallback estimate if the half max gives nan (division by 6.0 taken from lmfit)
+        #sigma_fallback = (x.max() - x.min()) / 6.0
+        #sigma = xr.where(sigma.isnull() | (sigma > sigma_fallback), sigma_fallback, sigma)
+
+        return {
+            "c": center_loc,
+            "a": amplitude,
+            "b": baseline,
+            "sigma": sigma,
+        }
 
     @classmethod
     @override
