@@ -195,6 +195,7 @@ class TimeOfFlightAnalysis(BaseAnalysis):
         1144.0
 
     """
+
     # TODO: add visualization to the docstring
 
     @classmethod
