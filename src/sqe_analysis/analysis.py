@@ -237,9 +237,6 @@ class GaussianAnalysis(CurvefitAnalysis):
         above_half_max = x.where(y_norm > 0.5)
         above_half_max_range = above_half_max.max(coords) - above_half_max.min(coords)
         sigma = 0.5 * above_half_max_range
-        # fallback estimate if the half max gives nan (division by 6.0 taken from lmfit)
-        #sigma_fallback = (x.max() - x.min()) / 6.0
-        #sigma = xr.where(sigma.isnull() | (sigma > sigma_fallback), sigma_fallback, sigma)
 
         return {
             "c": center_loc,
