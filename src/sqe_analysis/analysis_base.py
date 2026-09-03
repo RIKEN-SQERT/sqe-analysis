@@ -118,6 +118,8 @@ class CurvefitAnalysis(BaseAnalysis):
         ``xr.DataArray.curvefit``, i.e. a dictionary that maps parameter names
         to scalar values or data arrays (if the initial guess varies with a
         coordinate of multidimensional data).
+
+        Returns ``None`` if an initial guess is not implemented.
         """
         # TODO: link to xarray docs
         return None
