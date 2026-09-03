@@ -174,22 +174,28 @@ class ExponentialRegressionAnalysis(BaseAnalysis):
 
 class TimeOfFlightAnalysis(BaseAnalysis):
     """
-    Analysis for time-of-flight measurement
+    Analysis of time-of-flight measurement for calibrating acquisition delay
 
-    Assumes that the data is demodulated.
+    Finds the location of a single step-like rising edge in the data. Assumes
+    that the data is demodulated. The data may be complex-valued, it is
+    projected to the real axis using
+    :py:func:`~sqe_analysis.signal_processing.project_complex`. Always returns a
+    result that is a value from the analysis axis (i.e. time) of the dataset.
 
-    Always returns a result that is a value from the time axis of the dataset.
-
-    Returns:
-        A Dataset with the variable ???
+    Currently, this method does not work reliably if there is both a rising and
+    falling edge in the data.
 
     Example:
 
+        >>> from sqe_analysis.analysis import TimeOfFlightAnalysis
         >>> from sqe_analysis.example_data import open_dataset
-        >>> y = open_dataset("")
+        >>> data = open_dataset("time_of_flight-good_snr_cut_off-RX4_30").Q60
+        >>> result = TimeOfFlightAnalysis.run(data)
+        >>> result.params.step_location.item()
+        1144.0
 
-        Quick visualization of the result:
     """
+    # TODO: add visualization to the docstring
 
     @classmethod
     @override
@@ -200,6 +206,28 @@ class TimeOfFlightAnalysis(BaseAnalysis):
         snr_threshold: float = 2.0,
         smoothing: int = 5,
     ) -> AnalysisResult:
+        """
+        Perform the analysis.
+
+        Args:
+            dim: Dimension along which to perform the analysis, usually time. If
+                ``None``, uses the longest dimension of the data.
+            snr_threshold: If the SNR is below this value, the fit is marked as
+                unsuccessful.
+            smoothing: Size of rolling mean window along ``dim`` used to smooth
+                the data before taking the derivative.
+
+        Returns:
+            An :py:class:`~sqe_analysis.result.AnalysisResult` with the
+            following ``.params``:
+
+            -  ``step_location`` - the location of the step
+            - ``SNR`` - SNR estimated from the difference between the signal before and after the step
+
+            The data projected to the real axis is stored in
+            ``.intermediate_results.data_projected``, which may be used for
+            visualization.
+        """
         # TODO: how should I split project_complex vs smoothing in preprocess??
         if dim is None:
             dim = longest_dim(data)
