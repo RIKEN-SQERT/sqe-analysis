@@ -104,7 +104,11 @@ class CurvefitAnalysis(BaseAnalysis):
         )
 
     @classmethod
-    def guess(cls, preprocessed_data: xr.DataArray) -> CurvefitGuessType | None:
+    def guess(
+        cls,
+        preprocessed_data: xr.DataArray,
+        coords: CurvefitCoordsType,
+    ) -> CurvefitGuessType | None:
         """
         Initial guess for the curve fitting.
 
@@ -173,7 +177,7 @@ class CurvefitAnalysis(BaseAnalysis):
         else:
             data_to_fit = data
 
-        guess_from_func = cls.guess(data_to_fit)
+        guess_from_func = cls.guess(data_to_fit, coords=coords)
         if guess_from_func is not None:
             # override from guess provided as argument
             guess = {**guess_from_func, **guess}

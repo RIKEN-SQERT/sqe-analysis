@@ -29,7 +29,7 @@ class LineFitWithGuess(CurvefitAnalysis):
         return a * x + b
 
     @classmethod
-    def guess(cls, preprocessed_data):
+    def guess(cls, preprocessed_data, coords):
         return {"a": 0.0, "b": 0.0}
 
 
