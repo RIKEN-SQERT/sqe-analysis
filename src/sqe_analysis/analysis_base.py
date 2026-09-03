@@ -51,6 +51,15 @@ class BaseAnalysis(ABC):
         )
 
 
+CurvefitCoordsType = str | xr.DataArray | Iterable[str | xr.DataArray]
+"""
+Type of ``coords`` in ``CurvefitAnalysis.run()``.
+
+See `the Xarray curvefit documentation <https://docs.xarray.dev/en/stable/generated/xarray.DataArray.curvefit.html>`_
+for more information.
+"""
+
+
 CurvefitGuessType = Mapping[str, float | xr.DataArray]
 """
 The type of initial guess of xr.DataArray.curvefit, mapping from string to float
@@ -113,7 +122,7 @@ class CurvefitAnalysis(BaseAnalysis):
     def preprocess(
         cls,
         data: xr.DataArray,
-        coords: str | xr.DataArray | Iterable[str | xr.DataArray],
+        coords: CurvefitCoordsType,
     ) -> xr.DataArray | None:
         # TODO: docstrirng
         # ... should return a data array that is suitable for fitting to the model ...
@@ -124,7 +133,7 @@ class CurvefitAnalysis(BaseAnalysis):
     def run(
         cls,
         data: xr.DataArray,
-        coords: str | xr.DataArray | Iterable[str | xr.DataArray],
+        coords: CurvefitCoordsType,
         guess: CurvefitGuessType | None = None,
         curvefit_kwargs: dict[str, Any] | None = None,
     ) -> CurvefitAnalysisResult:
