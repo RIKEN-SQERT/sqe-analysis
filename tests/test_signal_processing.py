@@ -5,6 +5,7 @@ from xarray.testing import (  # pyright: ignore[reportUnknownVariableType]
     assert_equal,
 )
 
+from sqe_analysis.example_data import get_dataset_names, open_dataset
 from sqe_analysis.signal_processing import project_complex
 
 
@@ -70,3 +71,11 @@ def test_project_complex_2d_tuple_dim():
         projected,
         xr.DataArray([[-1, 1], [-1, 1]], dims=["x", "y"]),
     )
+
+
+def test_project_complex_idempotent():
+    for ds_name in get_dataset_names():
+        ds = open_dataset(ds_name)
+        p = project_complex(ds)
+        pp = project_complex(p)
+        assert_allclose(p, pp)
