@@ -124,3 +124,25 @@ def test_gaussian_analysis_partial_middle_curve():
     assert result.success.all()
     assert result.params.c.item() == pytest.approx(0, abs=0.5)
     assert "FWHM" in result.params
+
+
+@pytest.mark.xfail(
+    reason="TODO: add proper failure criterion to curve fit based on chi squared / SNR threshold"
+)
+def test_gaussian_analysis_no_signal():
+    data, _, _ = open_test_dataset(
+        "ac_stark_shift_vs_resonator_frequency-high_snr-RX3_1757"
+    )
+    f_q = "qubit_drive_frequency_shift"
+    data = (
+        data.Q72.assign_attrs(dataset_id=data.dataset_id)
+        .isel(
+            resonator_drive_frequency_shift=0,
+            qubit_pulse_amplitude=0,
+        )
+        .sel({f_q: slice(None, -50)})
+    )
+
+    result = GaussianAnalysis.run(data, f_q)
+
+    assert not result.success.all()
