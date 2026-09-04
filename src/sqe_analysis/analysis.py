@@ -248,12 +248,20 @@ class GaussianAnalysis(CurvefitAnalysis):
     @classmethod
     @override
     def preprocess(cls, data: xr.DataArray, coords: str) -> xr.DataArray:
+        """
+        Project complex-valued data to real axis
+        """
         proj = project_complex(data, dim=coords)
         return proj
 
     @classmethod
     @override
     def extra_params(cls, fit_params: xr.Dataset):
+        r"""
+        Add the following parameters to the fit result:
+
+        - ``FWHM``: full width at half maximum, :math:`\sigma \times 2\sqrt{2 \ln 2}`
+        """
         return xr.Dataset(
             {
                 "FWHM": 2 * fit_params.sigma * np.sqrt(2 * np.log(2)),
