@@ -34,7 +34,7 @@ def project_complex(
     dim: Dims | None = None,
 ) -> xr.DataArray | xr.Dataset:
     """
-    A simple way to project complex-valued data to the real axis in a way that maximizes the signal
+    A simple method to project complex-valued data to the real axis in a way that maximizes the signal
 
     Note that the sign of the signal is not guaranteed. The same input data
     rotated slightly in the complex plane can result in output with the opposite
