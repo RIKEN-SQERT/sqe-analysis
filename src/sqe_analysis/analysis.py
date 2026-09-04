@@ -11,7 +11,12 @@ import xarray as xr
 from numpy.typing import ArrayLike
 from xarray.core.types import Dims
 
-from sqe_analysis.analysis_base import BaseAnalysis
+from sqe_analysis.analysis_base import (
+    BaseAnalysis,
+    CurvefitAnalysis,
+    CurvefitCoordsType,
+    CurvefitGuessType,
+)
 from sqe_analysis.result import (
     AnalysisResult,
     CurvefitAnalysisResult,
@@ -170,6 +175,98 @@ class ExponentialRegressionAnalysis(BaseAnalysis):
         This can be used to conveniently evaluate the analysis result.
         """
         return a * np.exp(-k * x) + b
+
+
+class GaussianAnalysis(CurvefitAnalysis):
+    r"""
+    Curve fit for Gaussian-shaped data
+
+    Fits the model
+
+    .. math::
+
+        a \cdot \exp\left(-\frac{(x-c)^2}{2\sigma^2}\right) + b
+
+    to the data.
+
+    The data may be complex-valued, it will be projected to the real axis using
+    :py:func:`~sqe_analysis.signal_processing.project_complex` in :py:meth:`preprocess`.
+    """
+
+    @classmethod
+    @override
+    def func(cls, x: ArrayLike, c, a, b, sigma) -> ArrayLike:
+        return a * np.exp(-((x - c) ** 2) / (2 * sigma**2)) + b
+
+    @classmethod
+    @override
+    def guess(
+        cls,
+        preprocessed_data: xr.DataArray,
+        coords: CurvefitCoordsType,
+    ) -> CurvefitGuessType:
+        """
+        Crude initial guess for Gaussian parameters
+        """
+        # TODO: consider factoring out in to "rough peak analysis" or similar
+
+        y = preprocessed_data
+        x = y[coords]
+        mi = y.min(coords)
+        ma = y.max(coords)
+
+        # Use the maximum of the median absolute deviation as an estimate for
+        # the center location. This is not very robust if the baseline is not
+        # clearly visible. An alternative approach in this case would be to take
+        # the integral of the signal, normalize it, and look for the point where
+        # it crosses 0.5. But that method is not robust when there is a large
+        # baseline visible but only part of the bell curve.
+        center_loc = abs(y - y.median(coords)).idxmax(coords)
+
+        # drop_vars so that the coordinate doesn't linger around
+        center_val = y.sel({coords: center_loc}).drop_vars(coords)
+
+        # if the estimated peak is close to the minimum, flip the sign
+        sign = xr.where(abs(center_val - mi) < abs(center_val - ma), -1, 1)
+
+        amplitude = (ma - mi) * sign
+        baseline = xr.where(sign == -1, ma, mi)
+
+        y_norm = (y - baseline) / amplitude
+
+        above_half_max = x.where(y_norm > 0.5)
+        above_half_max_range = above_half_max.max(coords) - above_half_max.min(coords)
+        sigma = 0.5 * above_half_max_range
+
+        return {
+            "c": center_loc,
+            "a": amplitude,
+            "b": baseline,
+            "sigma": sigma,
+        }
+
+    @classmethod
+    @override
+    def preprocess(cls, data: xr.DataArray, coords: str) -> xr.DataArray:
+        """
+        Project complex-valued data to real axis
+        """
+        proj = project_complex(data, dim=coords)
+        return proj
+
+    @classmethod
+    @override
+    def extra_params(cls, fit_params: xr.Dataset):
+        r"""
+        Add the following parameters to the fit result:
+
+        - ``FWHM``: full width at half maximum, :math:`\sigma \times 2\sqrt{2 \ln 2}`
+        """
+        return xr.Dataset(
+            {
+                "FWHM": 2 * fit_params.sigma * np.sqrt(2 * np.log(2)),
+            }
+        )
 
 
 class TimeOfFlightAnalysis(BaseAnalysis):
