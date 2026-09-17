@@ -66,7 +66,7 @@ ds_annotated = (
 
         # based on the original metadata in the netcdf file
         source="RIKEN, SQERT XLD3 CD25 FY2023 144Q 3rd lot No6 dataset 1373",
-        #author="Adrian Hesse / RIKEN",
+        author="Adrian Hesse / RIKEN",
         license=LICENSE,
         
         source_type="experimental",
