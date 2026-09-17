@@ -31,7 +31,7 @@ class BaseAnalysis(ABC):
 
     Having a class with a single method may seem a bit redundant, but the goal
     is to keep the interface consistent across subclasses (such as
-    :py:class:`CurvefitAnalysis`) which may need more methods.
+    :py:class:`CurvefitAnalysis`) which may have more methods.
 
     Note that ``run`` is a class method, so it cannot depend on any internal
     state.
@@ -62,7 +62,7 @@ for more information.
 
 CurvefitGuessType = Mapping[str, float | xr.DataArray]
 """
-The type of initial guess of xr.DataArray.curvefit, mapping from string to float
+Type of initial guess for xr.DataArray.curvefit, mapping from string to float
 or DataArray
 """
 
@@ -71,7 +71,7 @@ CurvefitBoundsType = Mapping[
     tuple[float | xr.DataArray, float | xr.DataArray],
 ]
 """
-Parameter bounds for xr.DataArray.curvefit.
+Type of parameter bounds for xr.DataArray.curvefit.
 
 Maps parameter names to pairs of lower and upper bounds. Each bound can
 be a scalar or a DataArray.
@@ -187,9 +187,8 @@ class CurvefitAnalysis(BaseAnalysis):
         This is a thin wrapper around the `Xarray curvefit <https://docs.xarray.dev/en/stable/generated/xarray.DataArray.curvefit.html>`__
         function.
 
-        Initial guesses are passed to xarray after merging automatic and explicit
-        guesses. If an initial guess is outside the effective bounds, a ValueError
-        is raised, as in xarray and SciPy.
+        If an initial guess is outside the effective bounds, a ValueError is
+        raised, following the behavior of Xarray and SciPy.
 
         Args:
             data: Data to analyze

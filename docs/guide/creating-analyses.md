@@ -174,7 +174,8 @@ In this example, we will implement an analysis class which performs curve fittin
 sqe-fitting comes with a specialized subclass of `BaseAnalysis`, {py:class}`~sqe_analysis.analysis_base.CurvefitAnalysis`, which is suited for analysis that consists of a single curve fit.
 This class has a pre-defined {py:meth}`~sqe_analysis.analysis_base.CurvefitAnalysis.run` method, which internally calls the [Xarray curvefit](https://docs.xarray.dev/en/stable/generated/xarray.DataArray.curvefit.html) function.
 
-The minimum requirement for a `CurvefitAnalysis` is simply defining the model function that we want to fit, by overriding the {py:meth}`~sqe_analysis.analysis_base.CurvefitAnalysis.func` method:
+The minimum requirement for a `CurvefitAnalysis` is to define the model function that we want to fit, by overriding the {py:meth}`~sqe_analysis.analysis_base.CurvefitAnalysis.func` method.
+In this simple example, we will create an analysis class to fit a line.
 ```{code-cell} python
 from sqe_analysis.analysis_base import CurvefitAnalysis
 
