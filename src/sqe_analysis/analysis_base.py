@@ -66,6 +66,17 @@ The type of initial guess of xr.DataArray.curvefit, mapping from string to float
 or DataArray
 """
 
+CurvefitBoundsType = Mapping[
+    str,
+    tuple[float | xr.DataArray, float | xr.DataArray],
+]
+"""
+Parameter bounds for xr.DataArray.curvefit.
+
+Maps parameter names to pairs of lower and upper bounds. Each bound can
+be a scalar or a DataArray.
+"""
+
 
 class CurvefitAnalysis(BaseAnalysis):
     """
@@ -75,10 +86,9 @@ class CurvefitAnalysis(BaseAnalysis):
     :py:meth:`func`. The :py:meth:`run` method has a default implementation that
     performs fitting to ``func`` using ``xr.DataArray.curvefit`` and returns a
     :py:class:`~sqe_analysis.result.CurvefitAnalysisResult`. Additionally, a
-    subclass may implement two functions that will be called by ``run``:
-    :py:meth:`guess`, which produces an initial guess, and
-    :py:meth:`preprocess`, which can apply simple transformations to the data
-    before fitting.
+    subclass may implement :py:meth:`guess` for initial values,
+    :py:meth:`bounds` for default parameter bounds, and
+    :py:meth:`preprocess` for simple transformations before fitting.
 
     This class should only be used for the cases where the analysis truly
     consists of a single curve fit. If you need to perform multiple curve fits
@@ -126,6 +136,18 @@ class CurvefitAnalysis(BaseAnalysis):
         return None
 
     @classmethod
+    def bounds(cls) -> CurvefitBoundsType | None:
+        """
+        Default parameter bounds for curve fitting.
+
+        Returns a mapping from parameter names to tuples of ``(lower, upper)`` bounds,
+        in the same format as the ``bounds`` parameter of ``xr.DataArray.curvefit``.
+
+        Returns ``None`` if no default bounds are defined.
+        """
+        return None
+
+    @classmethod
     def preprocess(
         cls,
         data: xr.DataArray,
@@ -156,6 +178,7 @@ class CurvefitAnalysis(BaseAnalysis):
         data: xr.DataArray,
         coords: CurvefitCoordsType,
         guess: CurvefitGuessType | None = None,
+        bounds: CurvefitBoundsType | None = None,
         curvefit_kwargs: dict[str, Any] | None = None,
     ) -> CurvefitAnalysisResult:
         """
@@ -164,15 +187,24 @@ class CurvefitAnalysis(BaseAnalysis):
         This is a thin wrapper around the `Xarray curvefit <https://docs.xarray.dev/en/stable/generated/xarray.DataArray.curvefit.html>`__
         function.
 
+        Initial guesses are passed to xarray after merging automatic and explicit
+        guesses. If an initial guess is outside the effective bounds, a ValueError
+        is raised, as in xarray and SciPy.
+
         Args:
             data: Data to analyze
             coords: Coordinate(s) of the data along which to perform curve fitting.
             guess: Parameter values for initial guess. These will override any
                 parameters returned by :py:meth:`guess`.
             curvefit_kwargs: Keyword arguments passed to `xr.DataArray.curvefit`.
+            bounds: Parameter bounds overriding the output of :py:meth:`bounds` for
+                the specified parameters. ``None`` or an empty mapping gives no overrides.
+                Use ``(-np.inf, np.inf)`` to remove the bounds for a parameter.
+
+        Raises:
+            ValueError: If an initial guess is outside the effective bounds.
         """
         # TODO: automatically determine coords? longest dim? and separate subclass for 2D fit with 2 longest coords?
-        # TODO: bounds
 
         if guess is None:
             guess = {}
@@ -196,13 +228,20 @@ class CurvefitAnalysis(BaseAnalysis):
 
         guess_from_func = cls.guess(data_to_fit, coords=coords)
         if guess_from_func is not None:
-            # override from guess provided as argument
             guess = {**guess_from_func, **guess}
 
+        bounds_from_func = cls.bounds()
+        merged_bounds = {
+            **(bounds_from_func or {}),
+            **(bounds or {}),
+        }
+
+        # TODO: Consider clipping initial guesses to be within bounds.
         fit_result = data_to_fit.curvefit(
             coords=coords,
             func=cls.func,
             p0=guess,
+            bounds=merged_bounds,
             **curvefit_kwargs,
         )
 

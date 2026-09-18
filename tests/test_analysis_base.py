@@ -287,3 +287,96 @@ def test_curvefit_analysis_quadratic():
     assert res.fit_params.a.item() == pytest.approx(2.0)
     assert res.fit_params.b.item() == pytest.approx(3.0)
     assert res.fit_params.c.item() == pytest.approx(1.0)
+
+
+class LineFitWithBounds(LineFit):
+    @classmethod
+    def bounds(cls):
+        return {
+            "a": (-10.0, 3.0),
+            "b": (-10.0, 10.0),
+        }
+
+
+@pytest.mark.parametrize(
+    ("run_kwargs", "expected_a"),
+    [
+        ({}, 3.0),
+        ({"bounds": {"a": (-10.0, 5.0)}}, 4.0),
+        ({"bounds": None}, 3.0),
+        ({"bounds": {}}, 3.0),
+        ({"bounds": {"a": (-np.inf, np.inf)}}, 4.0),
+    ],
+    ids=[
+        "default",
+        "partial_override",
+        "none",
+        "empty",
+        "unbounded_a",
+    ],
+)
+def test_curvefit_analysis_bounds(run_kwargs, expected_a):
+    """Apply parameter-wise overrides while preserving other default bounds."""
+    x = np.linspace(-2.0, 2.0, 41)
+    data = xr.DataArray(
+        4.0 * x + 20.0,
+        coords=[("x", x)],
+        attrs={"dataset_id": "test"},
+    )
+
+    result = LineFitWithBounds.run(
+        data,
+        coords="x",
+        guess={"a": 1.0, "b": 0.0},
+        **run_kwargs,
+    )
+
+    assert result.success.item()
+    assert result.params.a.item() == pytest.approx(expected_a, abs=1e-6)
+    assert result.params.b.item() == pytest.approx(10.0, abs=1e-6)
+
+
+def test_curvefit_analysis_rejects_out_of_bounds_automatic_guess():
+    """Follow Xarray behavior of raising an error for infeasible automatic guesses."""
+    x = np.linspace(-2.0, 2.0, 41)
+    data = xr.DataArray(
+        4.0 * x + 1.0,
+        coords=[("x", x)],
+        attrs={"dataset_id": "test"},
+    )
+    with pytest.raises(ValueError):
+        LineFitWithGuess.run(
+            data,
+            coords="x",
+            bounds={"a": (2.0, 5.0)},
+        )
+
+
+def test_curvefit_analysis_preserves_manual_guess_with_bounds():
+    """Preserve explicit guesses, including invalid ones."""
+    x = np.linspace(-2.0, 2.0, 41)
+    data = xr.DataArray(
+        4.0 * x + 1.0,
+        coords=[("x", x)],
+        attrs={"dataset_id": "test"},
+    )
+    bounds = {"a": (2.0, 5.0)}
+
+    result = LineFitWithGuess.run(
+        data,
+        coords="x",
+        guess={"a": 3.0},
+        bounds=bounds,
+    )
+
+    assert result.success.item()
+    assert result.params.a.item() == pytest.approx(4.0)
+    assert result.fit_params_guess.a.item() == 3.0
+
+    with pytest.raises(ValueError):
+        LineFitWithGuess.run(
+            data,
+            coords="x",
+            guess={"a": 0.0},
+            bounds=bounds,
+        )
