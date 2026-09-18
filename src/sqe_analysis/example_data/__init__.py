@@ -126,9 +126,9 @@ def open_dataset(name: str) -> xr.Dataset:
 
 def validate_metadata(ds: xr.Dataset) -> None:
     """
-    Verify that the metadata of an xarray Dataset matches the schema described in the documentation.
+    Verify that the metadata of an Xarray Dataset matches the schema described in the documentation.
 
-    Raises a ValueError if the schema doesn't match.
+    Raises a ValueError if the metadata doesn't match the schema.
     """
     required_keys = [
         "title",
