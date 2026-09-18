@@ -206,9 +206,6 @@ class CurvefitAnalysis(BaseAnalysis):
         """
         # TODO: automatically determine coords? longest dim? and separate subclass for 2D fit with 2 longest coords?
 
-        if guess is None:
-            guess = {}
-
         if curvefit_kwargs is None:
             curvefit_kwargs = {}
 
@@ -227,8 +224,10 @@ class CurvefitAnalysis(BaseAnalysis):
             data_to_fit = data
 
         guess_from_func = cls.guess(data_to_fit, coords=coords)
-        if guess_from_func is not None:
-            guess = {**guess_from_func, **guess}
+        merged_guess = {
+            **(guess_from_func or {}),
+            **(guess or {}),
+        }
 
         bounds_from_func = cls.bounds()
         merged_bounds = {
@@ -240,7 +239,7 @@ class CurvefitAnalysis(BaseAnalysis):
         fit_result = data_to_fit.curvefit(
             coords=coords,
             func=cls.func,
-            p0=guess,
+            p0=merged_guess,
             bounds=merged_bounds,
             **curvefit_kwargs,
         )
@@ -260,8 +259,8 @@ class CurvefitAnalysis(BaseAnalysis):
 
         # TODO: this is similar to the intermediate_results case above but inconsistent...
         fit_params_guess = None
-        if guess:
-            fit_params_guess = xr.Dataset(guess)
+        if merged_guess:
+            fit_params_guess = xr.Dataset(merged_guess)
 
         fit_params = cast(
             xr.Dataset,
