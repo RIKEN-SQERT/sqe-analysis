@@ -4,7 +4,7 @@ The main API of the library
 The analysis classes are ordered alphabetically, for lack of better organization.
 """
 
-from typing import cast, override
+from typing import Any, cast, override
 
 import numpy as np
 import xarray as xr
@@ -22,8 +22,285 @@ from sqe_analysis.result import (
     CurvefitAnalysisResult,
     get_source_dataset_id,
 )
-from sqe_analysis.signal_processing import project_complex
+from sqe_analysis.signal_processing import project_complex, simple_dft
 from sqe_analysis.xarray_util import longest_dim
+
+
+class DampedOscillationAnalysis(CurvefitAnalysis):
+    r"""
+    Curve fit for exponentially damped oscillations
+
+    Fits the model
+
+    .. math::
+
+        b + a \cdot \exp(-x / \tau) \cdot \cos\left(2\pi (f x + \phi)\right)
+
+    to real-valued data. Complex readout IQ is projected to the real axis
+    using :py:func:`~sqe_analysis.signal_processing.project_complex`
+    in :py:meth:`preprocess`.
+
+    For supported inputs, :py:meth:`guess` estimates initial values for all
+    model parameters. Values supplied through the ``guess`` argument of
+    :py:meth:`run` override these estimates.
+
+    For complex input, ``a``, ``b``, and ``phi`` describe the projected
+    signal. The projection subtracts the complex mean and may reverse
+    the signal's sign.
+
+    The decay time ``tau`` has the same units as ``x``, and the frequency ``f``
+    has the inverse units of ``x``. Note that the phase ``phi`` is in *turns*.
+    """
+
+    @classmethod
+    @override
+    def func(cls, x: ArrayLike, a, b, tau, f, phi) -> ArrayLike:
+        return b + a * np.exp(-x / tau) * np.cos(2 * np.pi * (f * x + phi))
+
+    @staticmethod
+    def _has_uniform_steps(steps: np.ndarray) -> bool:
+        """Check uniform spacing for a nonempty array of time steps."""
+        return bool(np.allclose(steps, steps[0], rtol=1e-6, atol=0))
+
+    @classmethod
+    @override
+    def guess(
+        cls,
+        preprocessed_data: xr.DataArray,
+        coords: CurvefitCoordsType,
+    ) -> CurvefitGuessType | None:
+        """
+        Crude initial guesses for damped oscillation parameters
+
+        Supports real data with a named, one-dimensional, increasing,
+        uniformly spaced numeric coordinate. Each trace must contain
+        either only finite values or only NaN values.
+
+        For finite, nonconstant traces, frequency is estimated using
+        the FFT. The initial decay time is half the coordinate span.
+        Amplitude, offset, and phase are estimated by linear least
+        squares.
+
+        Constant traces use zero amplitude and their constant value as
+        the baseline. Their remaining initial values are numerical
+        placeholders. The run method marks these traces as unsuccessful.
+
+        All-NaN traces have NaN guesses for amplitude, offset, frequency,
+        and phase. The provisional decay time is shared across traces
+        and depends only on the coordinate.
+
+        Returns None for unsupported coordinates, partially missing
+        traces, or traces containing infinity.
+        """
+        y = preprocessed_data
+        if not isinstance(coords, str):
+            return None
+
+        x = y[coords]
+        if x.ndim != 1 or x.size < 3:
+            return None
+
+        dim = x.dims[0]
+
+        time = x.to_numpy().astype(float)
+        if not np.isfinite(time).all():
+            return None
+
+        finite_trace = np.isfinite(y).all(dim)
+        all_nan_trace = y.isnull().all(dim)
+        if not (finite_trace | all_nan_trace).all():
+            return None
+
+        steps = np.diff(time)
+        if steps[0] <= 0 or not cls._has_uniform_steps(steps):
+            # TODO: if we need it, consider adding guess for frequency even with
+            # non-uniform step using e.g.
+            # https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.lombscargle.html
+            return None
+
+        # use non-default frequency_dim_name so that we don't conflict with a
+        # possible dimension named 'frequency' on the data
+        spec = simple_dft(y, coords, frequency_dim_name="_f")
+        # Select only positive frequencies (because we're not using rfft) -
+        # exclude the DC component too
+        spec = spec.where(spec._f > 0, drop=True)
+
+        # use argmax with skipna=False + isel instead of idxmax + sel, so that NaNs are handled correctly
+        peak_idx = abs(spec).argmax("_f", skipna=False)
+        # drop_vars so that the extra '_f' dimension is not in the result
+        peak = spec.isel(_f=peak_idx).drop_vars("_f")
+        peak_freq = spec._f.isel(_f=peak_idx).drop_vars("_f")
+
+        # TODO: consider better guess for tau based on peak width
+        tau = float((time[-1] - time[0]) / 2)
+        baseline = y.mean(coords)
+        # divide by envelope mean to account for the reduced amplitude due to the decay
+        amplitude = 2 * abs(peak) / (x.size * np.exp(-x / tau).mean())
+        phase = 2 * np.pi * np.arctan2(peak.imag, peak.real) # multiply by 2pi to get turns
+
+        return {
+            "a": amplitude,
+            "b": baseline,
+            "tau": tau,
+            "f": peak_freq,
+            "phi": phase,
+        }
+
+    @classmethod
+    @override
+    def run(
+        cls,
+        data: xr.DataArray,
+        coords: CurvefitCoordsType,
+        guess: CurvefitGuessType | None = None,
+        curvefit_kwargs: dict[str, Any] | None = None,
+    ) -> CurvefitAnalysisResult:
+        """
+        Fit damped oscillations with default decay-time bounds.
+
+        The default bounds for ``tau`` are ``(0, np.inf)``.
+        Explicitly supplied bounds override this default.
+
+        The default optimization method is ``trf``. For ``trf`` and
+        ``dogbox``, parameter scaling defaults to ``x_scale="jac"``.
+
+        For a named one-dimensional coordinate, constant input traces are
+        marked as unsuccessful. Their entries in ``params`` and
+        ``fit_params`` are replaced by NaN.
+
+        A named one-dimensional coordinate must contain only finite
+        values, even when ``skipna=True`` is supplied.
+
+        Named one-dimensional coordinates that are not strictly
+        increasing or not uniformly spaced require explicit initial
+        values for all five parameters. Fitting preserves the original
+        sample order.
+
+        Args:
+            data: Data to analyze.
+            coords: Coordinate(s) along which to perform curve fitting.
+            guess: Initial parameter values overriding automatic guesses.
+            curvefit_kwargs: Keyword arguments passed to Xarray curvefit.
+
+        Returns:
+            The curve-fitting analysis result.
+
+        Raises:
+            ValueError: If a named one-dimensional coordinate contains
+                NaN or infinity, or if complete initial values are
+                missing for non-increasing or nonuniform coordinates.
+        """
+        options = {} if curvefit_kwargs is None else dict(curvefit_kwargs)
+
+        bounds = dict(options.get("bounds") or {})
+        bounds.setdefault("tau", (0, np.inf))
+        options["bounds"] = bounds
+
+        scipy_kwargs = dict(options.get("kwargs") or {})
+        if scipy_kwargs.get("method") is None:
+            scipy_kwargs["method"] = "trf"
+        if scipy_kwargs["method"] in ("trf", "dogbox"):
+            scipy_kwargs.setdefault("x_scale", "jac")
+        options["kwargs"] = scipy_kwargs
+
+        constant = None
+        if isinstance(coords, str):
+            coordinate = data[coords]
+            if coordinate.ndim == 1 and coordinate.size > 0:
+                if not np.isfinite(coordinate).all():
+                    raise ValueError(
+                        "Time coordinates must contain only finite values."
+                    )
+                time = coordinate.to_numpy()
+                manual_guess_reason = None
+
+                if np.any(time[1:] <= time[:-1]):
+                    manual_guess_reason = "Non-increasing"
+                elif time.size >= 3:
+                    steps = np.diff(time.astype(float))
+                    if not cls._has_uniform_steps(steps):
+                        manual_guess_reason = "Nonuniform"
+
+                if manual_guess_reason is not None:
+                    required = {"a", "b", "tau", "f", "phi"}
+                    if guess is None or not required.issubset(guess):
+                        raise ValueError(
+                            f"{manual_guess_reason} time coordinates require initial "
+                            "guesses for a, b, tau, f, and phi."
+                        )
+
+                dim = coordinate.dims[0]
+                first = data.isel({dim: 0}, drop=True)
+                constant = (data == first).all(dim)
+
+        prepared_guess = {} if guess is None else dict(guess)
+
+        if constant is not None and constant.any():
+            preprocessed = cls.preprocess(data, coords=coords)
+            data_to_guess = data if preprocessed is None else preprocessed
+            automatic_guess = cls.guess(data_to_guess, coords=coords)
+
+            if automatic_guess is not None:
+                for name, (lower, upper) in bounds.items():
+                    if name in prepared_guess or name not in automatic_guess:
+                        continue
+
+                    initial = automatic_guess[name]
+                    bounded = np.minimum(np.maximum(initial, lower), upper)
+                    prepared_guess[name] = xr.where(
+                        constant,
+                        bounded,
+                        initial,
+                    )
+
+        result = super().run(
+            data,
+            coords=coords,
+            guess=prepared_guess,
+            curvefit_kwargs=options,
+        )
+
+        if constant is not None:
+            result.success = result.success & ~constant
+            result.params = result.params.where(~constant)
+            result.fit_params = result.fit_params.where(~constant)
+
+        return result
+
+    @classmethod
+    @override
+    def preprocess(
+        cls,
+        data: xr.DataArray,
+        coords: CurvefitCoordsType,
+    ) -> xr.DataArray | None:
+        """
+        Project complex readout IQ to the real axis.
+
+        Args:
+            data: Real-valued data or complex readout IQ.
+            coords: For complex input, the name of a one-dimensional
+                coordinate along which to perform the projection.
+
+        Returns:
+            The projected data, or ``None`` for real-valued input.
+
+        Raises:
+            TypeError: If complex input uses a coordinate specification
+                other than a string.
+            ValueError: If the named coordinate is not one-dimensional.
+        """
+        if not np.iscomplexobj(data):
+            return None
+
+        if not isinstance(coords, str):
+            raise TypeError("Complex data require a named one-dimensional coordinate.")
+
+        coordinate = data[coords]
+        if coordinate.ndim != 1:
+            raise ValueError("Complex data require a named one-dimensional coordinate.")
+
+        return project_complex(data, dim=coordinate.dims[0])
 
 
 class ExponentialRegressionAnalysis(BaseAnalysis):
