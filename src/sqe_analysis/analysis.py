@@ -3,7 +3,6 @@ The main API of the library
 
 The analysis classes are ordered alphabetically, for lack of better organization.
 """
-
 from typing import cast, override
 
 import numpy as np
@@ -14,6 +13,7 @@ from xarray.core.types import Dims
 from sqe_analysis.analysis_base import (
     BaseAnalysis,
     CurvefitAnalysis,
+    CurvefitBoundsType,
     CurvefitCoordsType,
     CurvefitGuessType,
 )
@@ -22,8 +22,113 @@ from sqe_analysis.result import (
     CurvefitAnalysisResult,
     get_source_dataset_id,
 )
-from sqe_analysis.signal_processing import project_complex
+from sqe_analysis.signal_processing import project_complex, simple_dft
 from sqe_analysis.xarray_util import longest_dim
+
+
+class DampedOscillationAnalysis(CurvefitAnalysis):
+    r"""
+    Curve fit for exponentially damped oscillations
+
+    Fits the model
+
+    .. math::
+
+        b + a \cdot \exp(-x / \tau) \cdot \cos\left(2\pi (f x + \phi)\right)
+
+    to real-valued data. Input data is centered, and complex-valued data
+    is projected to the real axis with
+    :py:func:`~sqe_analysis.signal_processing.project_complex`.
+    The fitted parameters describe the preprocessed signal;
+    the projection of complex input may reverse its sign.
+
+    The decay time ``tau`` has the same units as ``x``, the frequency ``f``
+    has the inverse units of ``x``, and the phase ``phi`` is in *turns*.
+
+    In the current implementation, fitting can be unreliable when the time axis
+    has values that are many orders of magnitude larger than 1. In this case,
+    you may try, for example, to pass ``curvefit_kwargs={"kwargs": {"x_scale": "jac"}}``
+    to :py:meth:`~sqe_analysis.analysis_base.CurvefitAnalysis.run`. For further
+    information, see `the Xarray curvefit documentation <https://docs.xarray.dev/en/stable/generated/xarray.DataArray.curvefit.html>`_ and
+    `the SciPy curve_fit documentation <https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.curve_fit.html>`_.
+    """
+
+    @classmethod
+    @override
+    def func(cls, x: ArrayLike, a, b, tau, f, phi) -> ArrayLike:
+        return b + a * np.exp(-x / tau) * np.cos(2 * np.pi * (f * x + phi))
+
+    @classmethod
+    @override
+    def guess(
+        cls,
+        preprocessed_data: xr.DataArray,
+        coords: CurvefitCoordsType,
+    ) -> CurvefitGuessType | None:
+        """
+        Crude initial guesses for damped oscillation parameters.
+
+        For the automatic guess, ``coords`` should be a string, and it should be
+        a uniformly spaced dimension coordinate. Returns ``None`` for
+        unsupported coordinates or fewer than three samples.
+
+        Partially missing traces need finite manual guesses.
+        """
+        y = preprocessed_data
+        if not isinstance(coords, str) or coords not in y.dims:
+            return None
+
+        x = y[coords]
+        if x.size < 3:
+            return None
+
+        steps = x.diff(coords)
+        if steps[0] <= 0 or not np.allclose(steps, steps[0], rtol=1e-6, atol=0):
+            # TODO: if we need it, estimate frequency on nonuniform coordinates with
+            # https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.lombscargle.html
+            return None
+
+        # Avoid a collision with a possible input dimension named 'frequency'.
+        spec = simple_dft(y, coords, frequency_dim_name="_f")
+        spec = spec.where(spec._f > 0, drop=True)
+
+        # Keep all-NaN traces from aborting peak selection for valid neighbors
+        # by using isel + argmax instead of idxmax.
+        peak_idx = abs(spec).argmax("_f", skipna=False)
+        # Drop the selected FFT frequency coordinate from the guesses.
+        peak = spec.isel(_f=peak_idx).drop_vars("_f")
+        peak_freq = spec._f.isel(_f=peak_idx).drop_vars("_f")
+
+        first_time = x.isel({coords: 0}, drop=True)
+        tau = (x.isel({coords: -1}, drop=True) - first_time) / 2
+        baseline = y.mean(coords)
+        # divide by envelope mean to account for the reduced amplitude due to the decay
+        amplitude = 2 * abs(peak) / (x.size * np.exp(-x / tau).mean())
+        # FFT phase is relative to the first sample, where the model phase is
+        # f*t0 + phi in turns. Convert radians to turns, then subtract f*t0
+        phase = np.arctan2(peak.imag, peak.real) / (2 * np.pi) - peak_freq * first_time
+
+        return {
+            "a": amplitude,
+            "b": baseline,
+            "tau": tau,
+            "f": peak_freq,
+            "phi": phase,
+        }
+
+    @classmethod
+    @override
+    def bounds(cls) -> CurvefitBoundsType:
+        return {"tau": (0, np.inf)}
+
+    @classmethod
+    @override
+    def preprocess(cls, data: xr.DataArray, coords: str) -> xr.DataArray:
+        """
+        Project complex-valued data to real axis.
+        """
+        proj = project_complex(data, dim=coords)
+        return proj
 
 
 class ExponentialRegressionAnalysis(BaseAnalysis):
