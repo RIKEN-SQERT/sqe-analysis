@@ -198,7 +198,7 @@ def validate_metadata(ds: xr.Dataset) -> None:
                         invalid_types[k][k_sub] = type(v_sub)
             if invalid_types:
                 raise ValueError(
-                    f"If metadata 'expected_fit_result' is a dictionary of dictionaries, all values should be floats, but found {invalid_types}"
+                    f"If metadata 'expected_fit_result' is a dictionary of dictionaries, all values should be floats, but found {dict(invalid_types)}"
                 )
 
             # the dict keys should match the data variables in the dataset
