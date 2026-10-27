@@ -50,6 +50,21 @@ dataset. Each dataset should have the following NetCDF metadata:
                 ...
             }
 
+      Values in either form can be floats, or lists of floats with one element
+      for each value of a sweep parameter. For example, a 2D scan of multiple
+      qubits where resonance frequency is fitted at each value of a sweep
+      parameter has the following structure:
+
+        .. code-block::
+
+            {
+                "Q00": {
+                    "resonance_frequency": [6.100e9, 6.110e9, ...],
+                },
+                "Q01": {...},
+                ...
+            }
+
 - ``license``: string
     - A license identifier such as "CC BY-SA 4.0"
 
@@ -124,6 +139,16 @@ def open_dataset(name: str) -> xr.Dataset:
         ) from e
 
 
+def _is_float_or_list_of_floats(value) -> bool:
+    """
+    Check whether a value of the ``expected_fit_result`` metadata has an allowed
+    type: a float, or a non-empty list of floats.
+    """
+    if isinstance(value, list):
+        return bool(value) and all(isinstance(v, float) for v in value)
+    return isinstance(value, float)
+
+
 def validate_metadata(ds: xr.Dataset) -> None:
     """
     Verify that the metadata of an Xarray Dataset matches the schema described in the documentation.
@@ -184,21 +209,23 @@ def validate_metadata(ds: xr.Dataset) -> None:
             )
 
         expected_fit_result_types = {k: type(v) for k, v in expected_fit_result.items()}
-        all_dicts = all(v == dict for v in expected_fit_result_types.values())
-        all_floats = all(v == float for v in expected_fit_result_types.values())
-        if not (all_dicts or all_floats):
+        all_dicts = all(isinstance(v, dict) for v in expected_fit_result.values())
+        all_values = all(
+            _is_float_or_list_of_floats(v) for v in expected_fit_result.values()
+        )
+        if not (all_dicts or all_values):
             raise ValueError(
-                f"Expected 'expected_fit_result' metadata to be a dict of dicts or a dict of floats, but found {fmt_dict(expected_fit_result_types)}"
+                f"Expected 'expected_fit_result' metadata to be a dict of dicts or a dict of floats or lists of floats, but found {fmt_dict(expected_fit_result_types)}"
             )
         elif all_dicts:
             invalid_types = defaultdict(dict)
             for k, subdict in expected_fit_result.items():
                 for k_sub, v_sub in subdict.items():
-                    if not isinstance(v_sub, float):
+                    if not _is_float_or_list_of_floats(v_sub):
                         invalid_types[k][k_sub] = type(v_sub)
             if invalid_types:
                 raise ValueError(
-                    f"If metadata 'expected_fit_result' is a dictionary of dictionaries, all values should be floats, but found {invalid_types}"
+                    f"If metadata 'expected_fit_result' is a dictionary of dictionaries, all values should be floats or lists of floats, but found {dict(invalid_types)}"
                 )
 
             # the dict keys should match the data variables in the dataset
