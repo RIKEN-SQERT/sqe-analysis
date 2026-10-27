@@ -1,3 +1,5 @@
+export HOLOVIEWSRC = holoviews_config.py
+
 .PHONY: docs docs-clean docs-live
 
 docs:
