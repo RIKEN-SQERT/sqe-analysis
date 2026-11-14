@@ -9,6 +9,7 @@ The library consists of the following modules:
   
   sqe_analysis.analysis
   sqe_analysis.analysis_base
+  sqe_analysis.resonator
   sqe_analysis.result
   sqe_analysis.signal_processing
   sqe_analysis.xarray_util
@@ -21,6 +22,7 @@ The library consists of the following modules:
 
 analysis
 analysis_base
+resonator
 result
 signal_processing
 xarray_util

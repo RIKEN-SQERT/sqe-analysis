@@ -3,6 +3,7 @@ The main API of the library
 
 The analysis classes are ordered alphabetically, for lack of better organization.
 """
+
 from typing import cast, override
 
 import numpy as np
@@ -17,6 +18,10 @@ from sqe_analysis.analysis_base import (
     CurvefitCoordsType,
     CurvefitGuessType,
 )
+from sqe_analysis.resonator import (
+    NotchResonatorAnalysis,
+    ReflectionResonatorAnalysis,
+)
 from sqe_analysis.result import (
     AnalysisResult,
     CurvefitAnalysisResult,
@@ -24,6 +29,15 @@ from sqe_analysis.result import (
 )
 from sqe_analysis.signal_processing import project_complex, simple_dft
 from sqe_analysis.xarray_util import longest_dim
+
+__all__ = [
+    "DampedOscillationAnalysis",
+    "ExponentialRegressionAnalysis",
+    "GaussianAnalysis",
+    "NotchResonatorAnalysis",
+    "ReflectionResonatorAnalysis",
+    "TimeOfFlightAnalysis",
+]
 
 
 class DampedOscillationAnalysis(CurvefitAnalysis):

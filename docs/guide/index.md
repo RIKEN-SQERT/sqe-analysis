@@ -4,6 +4,7 @@
 :maxdepth: 1
 
 getting-started
+resonators
 creating-analyses
 example-dataset-gallery
 developer-guide

@@ -4,6 +4,13 @@ sqe-analysis is a small, well-crafted, and practical data analysis toolbox for y
 
 For additional information, see [the documentation](https://sqe-analysis.readthedocs.io/).
 
+Reflection and notch resonator fits are available as
+`ReflectionResonatorAnalysis` and `NotchResonatorAnalysis` from
+`sqe_analysis.analysis`. They accept complex Xarray DataArrays and return the
+same `CurvefitAnalysisResult` used by the other curve-fitting analyses, with
+Q values, resonance frequency, linewidth and statistical uncertainties.
+See the [resonator guide](docs/guide/resonators.md) for examples and conventions.
+
 
 ## License
 
