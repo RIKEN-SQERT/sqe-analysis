@@ -31,6 +31,10 @@ class AnalysisResult:
     """
     Estimates of the standard deviations of the extracted
     parameters, if available. May contain only a subset of `params`.
+    CurvefitAnalysis fills marginal statistical errors from the covariance;
+    derived quantities are included when a propagation rule is implemented.
+    NaN means unavailable, and infinity indicates unbounded/ill-conditioned
+    covariance. These are not systematic errors or uncertainty in preprocessing.
     """
 
     success: xr.DataArray

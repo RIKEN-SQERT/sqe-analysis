@@ -11,6 +11,13 @@ same `CurvefitAnalysisResult` used by the other curve-fitting analyses, with
 Q values, resonance frequency, linewidth and statistical uncertainties.
 See the [resonator guide](docs/guide/resonators.md) for examples and conventions.
 
+Real peak, double-peak, oscillation, beating, Gaussian-windowed fringe, linear,
+and stepped-exponential analyses use the same Xarray/result API. Ranked peak/dip
+detection lives in `sqe_analysis.signal_processing.detect_peaks`. Curve fits now
+return marginal statistical errors in `params_std` and full covariance in
+`debug_results.covariance`. See the [model and uncertainty guide](docs/guide/standard-models.md)
+for the API mapping, executable examples, units, and unavailable-error cases.
+
 
 ## License
 

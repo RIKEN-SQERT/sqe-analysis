@@ -28,14 +28,33 @@ from sqe_analysis.result import (
     get_source_dataset_id,
 )
 from sqe_analysis.signal_processing import project_complex, simple_dft
+from sqe_analysis.standard_models import (
+    DampedBeatingOscillationAnalysis,
+    DoubleGaussianAnalysis,
+    DoubleLorentzianAnalysis,
+    LinearAnalysis,
+    LorentzianAnalysis,
+    OscillationAnalysis,
+    RamseyFringeAnalysis,
+)
+from sqe_analysis.step_response import StepExponentialAnalysis
+from sqe_analysis.uncertainty import parameter_stds, regression_covariance
 from sqe_analysis.xarray_util import longest_dim
 
 __all__ = [
+    "DampedBeatingOscillationAnalysis",
     "DampedOscillationAnalysis",
+    "DoubleGaussianAnalysis",
+    "DoubleLorentzianAnalysis",
     "ExponentialRegressionAnalysis",
     "GaussianAnalysis",
+    "LinearAnalysis",
+    "LorentzianAnalysis",
     "NotchResonatorAnalysis",
+    "OscillationAnalysis",
+    "RamseyFringeAnalysis",
     "ReflectionResonatorAnalysis",
+    "StepExponentialAnalysis",
     "TimeOfFlightAnalysis",
 ]
 
@@ -166,9 +185,9 @@ class ExponentialRegressionAnalysis(BaseAnalysis):
 
     Note that the parameter names are different from those used by Jacquelin.
 
-    This method has the advantage that it is extremely fast and requires no
-    initial guess. The downside is that it does not provide error bounds for the
-    parameters. It can be used as an initial guess for curve fitting.
+    This method requires no initial guess. Real-data standard deviations use
+    delta-method propagation through the integral estimator with independent,
+    equal-variance additive noise. Complex-data uncertainties are unavailable.
 
     This method also works for data that lies along a line in the complex plane,
     with complex-valued :math:`a` and :math:`b`. In this case, the decay
@@ -278,6 +297,18 @@ class ExponentialRegressionAnalysis(BaseAnalysis):
         noise = (data - cls.func(data[dim], **fit_params)).std()
         snr = signal / noise
 
+        covariance = xr.apply_ufunc(
+            regression_covariance,
+            data[dim],
+            data,
+            input_core_dims=[[dim], [dim]],
+            output_core_dims=[["cov_i", "cov_j"]],
+            vectorize=True,
+            output_dtypes=[float],
+        ).assign_coords(cov_i=["k", "a", "b"], cov_j=["k", "a", "b"])
+        std = parameter_stds(covariance)
+        std["decay_constant"] = std.k / abs(fit_params.k) ** 2
+
         return CurvefitAnalysisResult(
             params=fit_params.assign(
                 decay_constant=1 / fit_params.k,
@@ -287,6 +318,8 @@ class ExponentialRegressionAnalysis(BaseAnalysis):
             source_dataset_id=get_source_dataset_id(data),
             success=snr > snr_threshold,
             fit_params=fit_params,
+            params_std=std,
+            debug_results=xr.Dataset({"covariance": covariance}),
         )
 
     @classmethod
@@ -387,6 +420,16 @@ class GaussianAnalysis(CurvefitAnalysis):
         return xr.Dataset(
             {
                 "FWHM": 2 * fit_params.sigma * np.sqrt(2 * np.log(2)),
+            }
+        )
+
+    @classmethod
+    def extra_params_std(cls, fit_params, covariance):
+        return xr.Dataset(
+            {
+                "FWHM": 2
+                * np.sqrt(2 * np.log(2))
+                * np.sqrt(covariance.sel(cov_i="sigma", cov_j="sigma", drop=True))
             }
         )
 

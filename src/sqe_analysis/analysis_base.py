@@ -16,6 +16,7 @@ from sqe_analysis.result import (
     CurvefitAnalysisResult,
     get_source_dataset_id,
 )
+from sqe_analysis.uncertainty import parameter_stds
 
 
 class BaseAnalysis(ABC):
@@ -270,6 +271,12 @@ class CurvefitAnalysis(BaseAnalysis):
         if extra_params is not None:
             result_params = result_params.merge(extra_params)
 
+        covariance = fit_result.curvefit_covariance
+        std = parameter_stds(covariance)
+        derived_std = cls.extra_params_std(fit_params, covariance)
+        if derived_std is not None:
+            std = std.merge(derived_std)
+
         # If errors='ignore' in curvefit_kwargs, the coefficients and
         # covariances for the coordinates where the fitting failed will be NaN.
         # TODO: add option for success based on chisquare threshold or similar?
@@ -283,8 +290,8 @@ class CurvefitAnalysis(BaseAnalysis):
             params=result_params,
             fit_params=fit_params,
             success=success,
-            # TODO: convert curvefit covariances to std (or store full covariance matrix???)
-            # params_std=fit_result.curvefit_covariances.to_dataset("param"),
+            params_std=std,
+            debug_results=xr.Dataset({"covariance": covariance}),
             intermediate_results=intermediate_results,
             fit_params_guess=fit_params_guess,
             analysis_class=cls,
@@ -309,4 +316,15 @@ class CurvefitAnalysis(BaseAnalysis):
             derived quantities, or ``None`` if there are no derived quantities.
         """
         # TODO: link to xarray dataset docs
+        return None
+
+    @classmethod
+    def extra_params_std(
+        cls, fit_params: xr.Dataset, covariance: xr.DataArray
+    ) -> xr.Dataset | None:
+        """Propagate covariance to derived quantities; unavailable errors are omitted.
+
+        Override this for derived parameters. Covariance axes are cov_i/cov_j.
+        Off-diagonal terms must be retained for correlated derived quantities.
+        """
         return None
